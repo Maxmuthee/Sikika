@@ -12,7 +12,7 @@
 | Esther Oyoo | Lead Developer | @aah3sta |
 | Maxwell Gitahi | Lead Developer | @Maxmuthee |
 
-**Team Name:** Sikika
+**Team Name:** A-Hacks
 **University:** Kenyatta University, USIU - Africa
 
 ---
