@@ -11,17 +11,24 @@ Needs ANTHROPIC_API_KEY. Run:  python scripts/ingest.py
 import sys
 from pathlib import Path
 
+if sys.platform.startswith("win"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except AttributeError:
+        pass
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from ai import LANGUAGES, simplify_budget, simplify_pdf
 from app import store
 from data.seed import seed_all
+from app.ussd import SUBCOUNTIES
 
 
 def ingest() -> None:
     seed_all()  # ensure projects exist (idempotent-ish for a fresh demo DB)
 
-    for ward in ("Molo",):
+    for ward in SUBCOUNTIES:
         for project in store.list_projects(ward):
             pid, name, pdf = project["id"], project["name_en"], project["pdf_path"]
             print(f"\nProject #{pid}: {name}  ({'PDF' if pdf else 'text'} source)")
