@@ -10,7 +10,7 @@
 | Name | Role | GitHub |
 |------|------|--------|
 | [Esther Oyoo] | [Role, Lead Developer] | [@aah3sta] |
-| [Maxwell Gitahi] | [Role, Developer] | [@Maxmuthee] |
+| [Maxwell Gitahi] | [Role, Lead Developer] | [@Maxmuthee] |
 
 **Team Name:** [Sikika]
 **University:** [Kenyatta University, USIU - Africa]
@@ -23,7 +23,7 @@
 
 <!-- Describe the core problem in 2-3 sentences. Keep it sharp. -->
 
-> [Rural residents aged 35 and above in Nakuru County face systematic exclusion from county government accountability and public participation. With over 510,000 individuals in this demographic (KNBS, 2019) largely underserved by existing civic technology, they are unable to track or influence how public funds affecting their livelihoods are allocated. Nakuru County scored only 25 out of 100 points on public participation feedback in the 2024 County Budget Transparency Survey, confirming that community input is collected but rarely translated into visible action. This problem is primarily caused by the absence of a lightweight, offline, local-language platform capable of translating complex county budget documents and broadcasting participation notices via SMS or USSD on basic feature phones. Supported by Communications Authority of Kenya data, the urban-rural digital divide locks out low-literacy, Kikuyu and Swahili-speaking adults from such processes. Despite Jihusishe's ambition to connect citizens with government accountability data, it requires smartphones, stable internet and English literacy; channels this population cannot access. An AI-powered SMS and USSD platform delivering simplified, mother-tongue accountability information to feature phones could meaningfully expand civic participation in Nakuru County, while ensuring all verification data is hashed, anonymised and never shared with third parties.]
+> Over 510,000 rural residents aged 35+ in Nakuru County are systematically cut off from county government accountability and public participation processes, as proven by the county's low score of 25 out of 100 on the 2024 County Budget Transparency Survey. This exclusion happens because official accountability documents are published as complex English PDFs online, while over half of rural Kenyans lack the smartphones, internet, or English literacy required to access them. Existing tools like the Jihusishe app fail this demographic by ignoring the deep urban-rural digital divide, leaving a critical need for an offline, local-language channel built for basic feature phones.
 
 ### Target User
 
@@ -31,24 +31,24 @@
 
 | Dimension | Detail |
 |-----------|--------|
-| **Primary user** | [e.g. A smallholder farmer in Migori County who uses WhatsApp daily] |
-| **Tech comfort** | [e.g. Comfortable with WhatsApp voice notes and text; no email] |
-| **Language** | [e.g. Swahili, Sheng, Dholuo — not English] |
-| **Current workflow** | [e.g. Hears about projects from local radio or baraza, has no way to verify] |
+| **Primary user** | A 45-year-old smallholder farmer in rural Nakuru who relies entirely on a basic feature phone. |
+| **Tech comfort** | Comfortable with USSD menus and basic SMS; completely offline with no smartphone, web browser, or email access. |
+| **Language** | Swahili, Kikuyu - No English literacy |
+| **Current workflow** | Hears about local county development plans late via word-of-mouth or local radio, travels miles to centralized barazas to air their views. |
 
 ### The Specific Gap
 
 <!-- What exists today? What's the precise gap your solution fills? -->
 
-1. **What's already there:** [e.g. International Budget Partnership Kenya's County Budget Transparency Survey; Auditor-General audit reports]
-2. **Why it falls short:** [e.g. Published as 200+ page English PDFs; require desktop browser, stable internet, and advanced literacy]
-3. **The gap we fill:** [e.g. Real-time, simplified Swahili/Sheng summaries delivered on WhatsApp — no PDFs, no English, no desktop required]
+1. **What's already there:** TISA's Jihusishe digital platform for tracking county data and reporting governance issues.
+2. **Why it falls short:** Runs only in English on smartphone apps and web browsers, requiring active internet bundles and text-heavy interactions.
+3. **The gap we fill:** Offline, micro-localized Swahili and Kikuyu bill summaries delivered via USSD menus and SMS — no smartphones, internet, or English literacy required.
 
 ### Why It Matters
 
 <!-- Connect this to democratic participation. -->
 
-> [e.g. When rural citizens can't track county spending, projects stall, funds divert, and the accountability loop between citizen and government breaks. Closing this information gap restores a basic democratic feedback mechanism: informed citizens can ask better questions, demand answers, and vote accordingly.]
+> When rural citizens are locked out of public participation, county governments pass budgets and bills without real community oversight, rendering local voices invisible. Closing this accessibility gap restores a fundamental democratic mechanism: older, rural right-holders can securely review localized county decisions from their homes, log informed feedback and legally hold local duty-bearers accountable.
 
 ---
 
@@ -122,6 +122,6 @@ Examples:
 
 ## License
 
-MIT © [Sikika], 2026
+MIT © Sikika, 2026
 
 ---
