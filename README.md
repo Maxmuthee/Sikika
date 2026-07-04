@@ -56,30 +56,40 @@
 
 ### Prerequisites
 
-- Python 3.10+
-- [Add any other dependencies: Node.js, Docker, API keys, etc.]
+- **Python 3.10+** (developed on 3.12)
+- A **DeepSeek API key** (the AI runs on DeepSeek's OpenAI-compatible API)
+- That's all — SQLite ships with Python; no Node, Docker, or database server needed.
 
 ### Quick Start
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/[org]/[repo].git
-cd [repo]
+git clone https://github.com/Maxmuthee/Sikika.git
+cd Sikika
 
 # 2. Create a virtual environment
-python -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
+python -m venv .venv
+.venv\Scripts\activate           # macOS/Linux: source .venv/bin/activate
 
 # 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Set environment variables
-cp .env.example .env
-# Edit .env with your API keys
+# 4. Configure the AI key
+cp .env.example .env             # then set SIKIKA_API_KEY to your DeepSeek key
 
-# 5. Run the project
-python src/main.py
+# 5. Create + seed the database (Nakuru sub-counties, wards, budgets, 2026 bills)
+python scripts/init_db.py
+
+# 6. (Optional) Pre-generate real AI mother-tongue content for every item
+python scripts/ingest.py         # needs the API key; otherwise hand-written fallbacks are used
+
+# 7. Run the server
+uvicorn app.main:app --reload
 ```
+
+Then open:
+- **http://localhost:8000/simulator** — feature-phone simulator (USSD dialer + SMS chat), drives the app offline
+- **http://localhost:8000/** — county participation dashboard (votes + AI-aggregated brief)
 
 ---
 
@@ -87,16 +97,28 @@ python src/main.py
 
 ```
 .
-├── README.md                   ← You are here
-├── docs/
-│   └── problem-statement.md    ← Detailed problem breakdown
-├── src/
-│   └── main.py                 ← Entry point
-├── notebooks/
-│   └── exploration.ipynb       ← Experiments & prototyping
+├── app/                          ← FastAPI backend
+│   ├── main.py                   ← API: /ussd, /sms, /county, /admin/notify, dashboard
+│   ├── ussd.py                   ← USSD state machine (signup → browse → vote), paginated & localized
+│   ├── store.py                  ← SQLite persistence
+│   ├── hashing.py                ← SHA-256 anonymisation of phone & national ID
+│   ├── notify.py                 ← outbound SMS alerts to registered citizens
+│   ├── wards.py                  ← Nakuru sub-counties & their wards
+│   └── static/
+│       ├── simulator.html        ← feature-phone simulator (USSD + SMS)
+│       └── dashboard.html        ← county participation dashboard
+├── ai/                           ← AI core (DeepSeek via the OpenAI SDK)
+│   ├── core.py                   ← simplify · translate · aggregate · answer
+│   └── prompts.py                ← prompts + language config (sw / ki / en)
 ├── data/
-│   └── .gitkeep                ← Sample / reference data
+│   ├── seed.py                   ← real Nakuru budget items & 2026 bills
+│   └── explosives_bill_2026.pdf  ← a real tabled bill, simplified on demand
+├── scripts/
+│   ├── init_db.py                ← create + seed the database
+│   ├── ingest.py                 ← pre-generate AI mother-tongue content
+│   └── notify.py                 ← send SMS alerts for a project
 ├── requirements.txt
+├── .env.example
 ├── .gitignore
 └── LICENSE
 ```
@@ -105,17 +127,30 @@ python src/main.py
 
 ## Approach & Architecture
 
-<!--
-Briefly describe your approach. What technologies are you using?
-Include a simple diagram (ASCII or link) if helpful.
+Sikika meets rural citizens on the channel they already have — a **basic feature phone** — over **USSD** (interactive menus) and **SMS** (alerts + a conversational AI assistant). No smartphone, internet, or English needed; the phone only needs a cellular signal. The AI runs entirely **server-side**, so the citizen stays offline.
 
-Examples:
-- "We use Retrieval-Augmented Generation (RAG) to query county budget PDFs…"
-- "We cross-validate enrolment data against capitation flows using…"
--->
+**What the AI does (four jobs):**
+- **Simplify** — turns long English county budgets and bills (including real PDFs) into ≤160-character **Swahili, Kikuyu, or English** screens and SMS alerts.
+- **Answer** — citizens text follow-up questions and Sikika replies in their own language, **grounded only in the real bill facts**, with conversation memory.
+- **Translate & scrub** — citizen feedback is translated to English and **PII-redacted** before storage.
+- **Aggregate** — feedback is rolled into a **county brief** that makes participation visible, closing the loop (Nakuru scored 25/100 on acting on public input).
+
+**Privacy:** phone numbers and national IDs are stored only as **SHA-256 hashes**. The ID enforces one-person-one-vote and is never shown or stored in the clear.
+
+**Stack:** FastAPI · SQLite · **DeepSeek** (`deepseek-chat`, via the OpenAI-compatible API) · pypdf · USSD/SMS in the **Africa's Talking** format (a built-in simulator drives it offline for demos).
 
 ```
-[User] → [WhatsApp / Web App] → [Backend / API] → [LLM / RAG Pipeline] → [Response]
+                       Cellular network (no internet needed)
+  [Feature phone] ──USSD / SMS──►  [Africa's Talking]  ──HTTPS──►  [ Sikika · FastAPI ]
+        ▲                                                              │        │
+        └───────────── SMS / USSD reply ◄──────────────────────────────┘        │
+                                                          ┌─────────────────────┴───────────┐
+                                                          ▼                                  ▼
+                                                 [ SQLite ]                          [ DeepSeek LLM ]
+                                          votes · feedback · registrations      simplify · translate ·
+                                                 (all hashed)                    aggregate · answer
+
+  [County officials] ──►  [ Dashboard ]  ◄──  live vote tallies + AI-aggregated citizen brief
 ```
 
 ---
