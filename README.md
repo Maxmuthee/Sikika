@@ -9,11 +9,11 @@
 
 | Name | Role | GitHub |
 |------|------|--------|
-| [Esther Oyoo] | [Role, Lead Developer] | [@aah3sta] |
-| [Maxwell Gitahi] | [Role, Lead Developer] | [@Maxmuthee] |
+| Esther Oyoo | Lead Developer | @aah3sta |
+| Maxwell Gitahi | Lead Developer | @Maxmuthee |
 
-**Team Name:** [Sikika]
-**University:** [Kenyatta University, USIU - Africa]
+**Team Name:** Sikika
+**University:** Kenyatta University, USIU - Africa
 
 ---
 
