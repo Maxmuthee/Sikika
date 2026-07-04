@@ -1,0 +1,9 @@
+# Sikika — core dependencies
+anthropic>=0.69          # Claude API (AI simplification, translation, aggregation)
+pydantic>=2.7            # structured-output schemas
+python-dotenv>=1.0       # load ANTHROPIC_API_KEY from .env
+
+# Web / USSD layer (used from Step 3 onward)
+fastapi>=0.111
+uvicorn[standard]>=0.30
+python-multipart>=0.0.9   # required by FastAPI for USSD/SMS form posts

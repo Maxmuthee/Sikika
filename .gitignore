@@ -1,0 +1,17 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Local data / SQLite (added in Step 4)
+*.db
+*.sqlite3
+
+# OS
+.DS_Store
+Thumbs.db
