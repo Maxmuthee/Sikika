@@ -83,6 +83,16 @@ def init_db() -> None:
                 created_at  TEXT DEFAULT (datetime('now')),
                 PRIMARY KEY (project_id, voter_hash)
             );
+            -- Two-way SMS thread with Sikika (notifications + AI Q&A), keyed by
+            -- the anonymous phone hash. phone_number kept for delivery only.
+            CREATE TABLE IF NOT EXISTS sms (
+                id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                phone_hash   TEXT NOT NULL,
+                phone_number TEXT,
+                direction    TEXT NOT NULL CHECK (direction IN ('in','out')),
+                body         TEXT NOT NULL,
+                created_at   TEXT DEFAULT (datetime('now'))
+            );
             CREATE TABLE IF NOT EXISTS feedback (
                 id          INTEGER PRIMARY KEY AUTOINCREMENT,
                 project_id  INTEGER NOT NULL REFERENCES projects(id),
@@ -272,3 +282,43 @@ def list_feedback(project_id: int) -> list[sqlite3.Row]:
         return c.execute(
             "SELECT * FROM feedback WHERE project_id = ? ORDER BY id", (project_id,)
         ).fetchall()
+
+
+# --- SMS thread --------------------------------------------------------------
+def add_sms(phone_hash: str, phone_number: str, direction: str, body: str) -> None:
+    with _conn() as c:
+        c.execute(
+            "INSERT INTO sms (phone_hash, phone_number, direction, body) VALUES (?,?,?,?)",
+            (phone_hash, phone_number, direction, body),
+        )
+
+
+def sms_thread(phone_hash: str, limit: int = 60) -> list[sqlite3.Row]:
+    with _conn() as c:
+        rows = c.execute(
+            "SELECT direction, body, created_at FROM sms WHERE phone_hash = ? "
+            "ORDER BY id DESC LIMIT ?", (phone_hash, limit),
+        ).fetchall()
+    return list(reversed(rows))
+
+
+def sms_history_for_ai(phone_hash: str, limit: int = 6) -> list[tuple[str, str]]:
+    """Recent (direction, body) pairs to give the AI conversation memory."""
+    with _conn() as c:
+        rows = c.execute(
+            "SELECT direction, body FROM sms WHERE phone_hash = ? "
+            "ORDER BY id DESC LIMIT ?", (phone_hash, limit),
+        ).fetchall()
+    return [(r["direction"], r["body"]) for r in reversed(rows)]
+
+
+def all_projects() -> list[sqlite3.Row]:
+    with _conn() as c:
+        return c.execute("SELECT * FROM projects ORDER BY id").fetchall()
+
+
+def latest_project_in(sub_county: str) -> Optional[sqlite3.Row]:
+    with _conn() as c:
+        return c.execute(
+            "SELECT * FROM projects WHERE ward = ? ORDER BY id DESC LIMIT 1", (sub_county,)
+        ).fetchone()

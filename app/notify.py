@@ -11,6 +11,7 @@ from __future__ import annotations
 import logging
 
 from . import store
+from .hashing import hash_phone
 
 log = logging.getLogger("sikika.sms")
 
@@ -18,6 +19,12 @@ log = logging.getLogger("sikika.sms")
 def send_sms(to: str, message: str) -> None:
     """Deliver one SMS. Stub — wire to Africa's Talking SMS API for real sends."""
     log.info("SMS -> %s | %s", to, message)
+
+
+def deliver(phone_number: str, message: str) -> None:
+    """Send an SMS and record it in the citizen's Sikika thread."""
+    send_sms(phone_number, message)
+    store.add_sms(hash_phone(phone_number), phone_number, "out", message)
 
 
 def notify_new_project(project_id: int) -> dict:
@@ -32,7 +39,7 @@ def notify_new_project(project_id: int) -> dict:
     for r in recipients:
         tr = store.get_translation(project_id, r["lang"] or "sw")
         message = tr["sms_alert"] if tr else f"Sikika: {project['name_en']} - dial *384#."
-        send_sms(r["phone_number"], message)
+        deliver(r["phone_number"], message)
         sent.append({"lang": r["lang"], "ward": r["ward"]})
 
     return {

@@ -18,13 +18,13 @@ from pathlib import Path
 from fastapi import FastAPI, Form
 from fastapi.responses import FileResponse, PlainTextResponse
 
-from ai import aggregate_feedback, translate_feedback
+from ai import aggregate_feedback, answer_sms, translate_feedback
 from ai.core import FeedbackAnalysis
 
 from . import store
 from . import ussd as ussd_flow  # aliased: the /ussd route function must not shadow the module
 from .hashing import hash_phone
-from .notify import notify_new_project, send_sms
+from .notify import deliver, notify_new_project, send_sms
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("sikika")
@@ -106,29 +106,51 @@ def inbound_sms(
     text: str = Form(...),
     to: str = Form(default=""),
 ) -> dict:
-    """Treat an inbound SMS as feedback.
+    """A two-way SMS assistant for offline citizens.
 
-    Format:  "<project_id> <message>"  (project id optional; defaults to latest).
-    The message is translated to English, PII-scrubbed, tagged, and stored
-    against the SHA-256 hash of the sender — never the number.
+    Default: the message is a QUESTION -> Claude answers, grounded in the
+    current projects/bills, in the citizen's language, with conversation memory.
+    Commands: SIKIZA <id> (listen by voice), MAONI <text> (submit feedback),
+    MSAADA/HELP (help).
     """
-    project_id, message = _parse_sms(text)
-    if project_id is None:
-        send_sms(from_, "Sikika: tuma 'namba_ya_mradi ujumbe'. / send 'project_id message'.")
-        return {"status": "no_project"}
-
+    body = text.strip()
     phone_hash = hash_phone(from_)
-    profile = None
-    # Use the citizen's known language as a translation hint if we have it.
-    src_lang = _profile_lang(phone_hash) or "sw"
+    reg = store.get_registration(phone_hash)
+    lang_hint = reg["lang"] if reg else None
 
-    analysis = translate_feedback(message, src_lang)  # AI Point 2
-    store.record_feedback(
-        project_id, phone_hash, src_lang,
-        analysis.english, analysis.sentiment, analysis.theme,
-    )
-    send_sms(from_, "Sikika: Maoni yako yamepokelewa. Asante! / Your feedback was received. Thank you!")
-    return {"status": "recorded", "sentiment": analysis.sentiment, "theme": analysis.theme}
+    # History BEFORE storing the current inbound message.
+    history = store.sms_history_for_ai(phone_hash)
+    store.add_sms(phone_hash, from_, "in", body)
+
+    reply = _handle_sms(body, phone_hash, from_, reg, lang_hint, history)
+    reply = reply[:480]  # keep to a few SMS segments
+    store.add_sms(phone_hash, from_, "out", reply)
+    send_sms(from_, reply)
+    return {"reply": reply}
+
+
+@app.get("/api/sms")
+def api_sms(phone: str) -> dict:
+    """The SMS thread for a phone (used by the simulator)."""
+    rows = store.sms_thread(hash_phone(phone))
+    return {"messages": [
+        {"direction": r["direction"], "body": r["body"], "at": r["created_at"]}
+        for r in rows
+    ]}
+
+
+@app.post("/api/demo/notify")
+def demo_notify(phone: str, project_id: int = 1) -> dict:
+    """Demo helper: push a project's SMS alert straight to one phone's thread."""
+    project = store.get_project(project_id)
+    if project is None:
+        return {"error": "unknown project"}
+    reg = store.get_registration(hash_phone(phone))
+    lang = reg["lang"] if reg else "sw"
+    tr = store.get_translation(project_id, lang)
+    msg = tr["sms_alert"] if tr else f"Sikika: {project['name_en']} - dial *384#."
+    deliver(phone, msg)
+    return {"sent": msg}
 
 
 # --- County-facing brief (feeds the dashboard) -------------------------------
@@ -157,23 +179,61 @@ def county_brief(project_id: int) -> dict:
     return result
 
 
-# --- helpers -----------------------------------------------------------------
-def _parse_sms(text: str) -> tuple[int | None, str]:
-    text = text.strip()
-    head, _, rest = text.partition(" ")
-    if head.isdigit() and rest:
-        return int(head), rest.strip()
-    # No leading project id: attach to the most recent project, if any.
-    for ward in ussd_flow.WARDS:
-        projects = store.list_projects(ward)
-        if projects:
-            return int(projects[-1]["id"]), text
-    return None, text
+# --- SMS routing -------------------------------------------------------------
+def _handle_sms(body, phone_hash, phone, reg, lang_hint, history) -> str:
+    up = body.upper()
+
+    # HELP / MSAADA
+    if up in ("HELP", "MSAADA", "SIKIKA"):
+        return ("Sikika: Uliza swali lolote kuhusu bajeti au miswada ya Nakuru. "
+                "Tuma 'SIKIZA <namba>' kusikia kwa sauti. Piga *384#.")
+
+    # SIKIZA <project_id> -> voice/IVR callback (simulated)
+    if up.startswith(("SIKIZA", "SIKILIZA", "LISTEN")):
+        parts = body.split()
+        pid = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else None
+        project = store.get_project(pid) if pid else None
+        if project is None:
+            return "Sikika: Tuma 'SIKIZA <namba ya mradi>'. / Send 'SIKIZA <project number>'."
+        return (f"Sikika: Tunakupigia simu kusoma '{project['name_en']}' kwa sauti. "
+                f"/ We will call you to read '{project['name_en']}' aloud.")
+
+    # MAONI <text> / FEEDBACK <text> -> capture feedback
+    if up.startswith(("MAONI", "FEEDBACK")):
+        fb = body.split(" ", 1)[1].strip() if " " in body else ""
+        if not fb:
+            return "Sikika: Andika 'MAONI' kisha maoni yako. / Write 'MAONI' then your feedback."
+        sub = reg["sub_county"] if reg else None
+        project = (store.latest_project_in(sub) if sub else None) or (
+            store.all_projects()[-1] if store.all_projects() else None)
+        if project is None:
+            return "Sikika: Hakuna mradi kwa sasa. / No project available now."
+        try:
+            a = translate_feedback(fb, lang_hint or "sw")
+            store.record_feedback(project["id"], phone_hash, lang_hint or "sw",
+                                  a.english, a.sentiment, a.theme)
+            return ("Sikika: Maoni yako kuhusu '" + project["name_en"] +
+                    "' yamepokelewa. Asante!")
+        except Exception:  # AI unavailable — still acknowledge
+            return "Sikika: Maoni yako yamepokelewa. Asante!"
+
+    # Default: an open question -> AI answers, grounded in project facts.
+    try:
+        return answer_sms(body, history, _projects_context(), lang_hint)
+    except Exception as e:  # e.g. no API key / network — fail gracefully
+        log.warning("SMS AI answer failed: %s", e)
+        return ("Sikika: Samahani, siwezi kujibu sasa. Piga *384# au uliza tena baadaye. "
+                "/ Sorry, I can't answer right now. Dial *384# or try again later.")
 
 
-def _profile_lang(phone_hash: str) -> str | None:
-    with store._conn() as c:  # small read; fine for the demo
-        row = c.execute(
-            "SELECT lang FROM profiles WHERE phone_hash = ?", (phone_hash,)
-        ).fetchone()
-    return row["lang"] if row else None
+def _projects_context() -> str:
+    """Compact fact sheet of all current projects/bills for the SMS assistant."""
+    lines = []
+    for p in store.all_projects():
+        tr = store.get_translation(p["id"], "en")
+        if tr:
+            lines.append(f"- #{p['id']} {tr['project_name']} ({p['ward']}): "
+                         f"{tr['civic_education']} {tr['data_summary']}")
+        else:
+            lines.append(f"- #{p['id']} {p['name_en']} ({p['ward']})")
+    return "\n".join(lines)

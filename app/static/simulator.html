@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sikika — USSD Simulator</title>
+  <title>Sikika — USSD & SMS Simulator</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -12,17 +12,22 @@
       background: #0e1116; color: #cbd5e1;
       font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
     }
-    .tagline { font-size: 13px; color: #64748b; text-align: center; max-width: 340px; }
+    .tagline { font-size: 13px; color: #64748b; text-align: center; max-width: 360px; }
     .sim { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #94a3b8; }
     .sim select { background: #1e2530; color: #e2e8f0; border: 1px solid #334155; border-radius: 6px; padding: 5px 8px; }
     .phone {
       width: 300px; background: #1b1f27; border: 2px solid #2b323d; border-radius: 28px;
-      padding: 18px 16px 22px; box-shadow: 0 20px 50px rgba(0,0,0,.5);
+      padding: 14px 16px 20px; box-shadow: 0 20px 50px rgba(0,0,0,.5);
     }
     .brand { text-align: center; color: #475569; font-size: 11px; letter-spacing: .18em; margin-bottom: 8px; }
+    .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+    .tab { background: #2a313c; color: #9aa4b2; border: none; border-radius: 8px; padding: 8px 0; font-size: 13px; cursor: pointer; }
+    .tab.active { background: #0f766e; color: #fff; }
+
+    /* ---- USSD ---- */
     .screen {
       background: #b9d6a0; color: #12210b; border-radius: 8px; padding: 12px;
-      height: 210px; overflow-y: auto; white-space: pre-line;
+      height: 200px; overflow-y: auto; white-space: pre-line;
       font: 14px/1.42 "DejaVu Sans Mono", Menlo, Consolas, monospace;
       box-shadow: inset 0 0 0 2px #8fae77;
     }
@@ -30,28 +35,42 @@
     .inputline {
       margin-top: 8px; height: 30px; background: #0f1319; border: 1px solid #2b323d; border-radius: 6px;
       display: flex; align-items: center; padding: 0 10px; color: #e2e8f0;
-      font: 16px/1 "DejaVu Sans Mono", monospace; letter-spacing: .12em; min-height: 30px;
+      font: 16px/1 "DejaVu Sans Mono", monospace; letter-spacing: .12em;
     }
     .inputline .cursor { color: #22d3ee; }
     .keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
-    .key {
-      background: #2a313c; color: #e5e7eb; border: none; border-radius: 10px; padding: 12px 0;
-      font-size: 18px; cursor: pointer; user-select: none;
-    }
+    .key { background: #2a313c; color: #e5e7eb; border: none; border-radius: 10px; padding: 12px 0; font-size: 18px; cursor: pointer; user-select: none; }
     .key:active { background: #3b4453; transform: translateY(1px); }
     .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
     .act { border: none; border-radius: 10px; padding: 12px 0; font-size: 15px; font-weight: 600; cursor: pointer; color: #fff; }
     .call { background: #16a34a; } .call:active { background: #15803d; }
     .end  { background: #dc2626; } .end:active { background: #b91c1c; }
+
+    /* ---- Messages ---- */
+    .thread {
+      background: #0f1319; border-radius: 8px; padding: 10px; height: 300px;
+      overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
+    }
+    .bubble { max-width: 82%; padding: 8px 10px; border-radius: 12px; font-size: 13px; line-height: 1.35; white-space: pre-wrap; }
+    .from-sikika { align-self: flex-start; background: #14342f; color: #d7f2ea; border-bottom-left-radius: 3px; }
+    .from-me { align-self: flex-end; background: #1e3a8a; color: #e6edff; border-bottom-right-radius: 3px; }
+    .empty-thread { margin: auto; color: #475569; font-size: 12.5px; text-align: center; }
+    .composer { display: flex; gap: 6px; margin-top: 8px; }
+    .composer input { flex: 1; background: #0f1319; color: #e2e8f0; border: 1px solid #2b323d; border-radius: 8px; padding: 9px 10px; font-size: 14px; }
+    .composer button { background: #16a34a; color: #fff; border: none; border-radius: 8px; padding: 0 14px; font-weight: 600; cursor: pointer; }
+    .demo-btn { width: 100%; margin-top: 8px; background: #7c3aed; color: #fff; border: none; border-radius: 8px; padding: 9px 0; font-size: 13px; cursor: pointer; }
+    .demo-btn:active { background: #6d28d9; }
+
+    .hidden { display: none; }
     .status { font-size: 12px; color: #64748b; min-height: 16px; }
     a.link { color: #2dd4bf; font-size: 13px; text-decoration: none; }
   </style>
 </head>
 <body>
-  <div class="tagline">Sikika USSD simulator — drives the real <code>/ussd</code> endpoint offline, exactly as Africa's Talking would.</div>
+  <div class="tagline">Sikika simulator — dial USSD or chat by SMS, offline, exactly as a feature phone would.</div>
 
   <div class="sim">
-    Dialing from:
+    Phone:
     <select id="sim">
       <option value="+254700111001">SIM 1 · 0700 111 001</option>
       <option value="+254700111002">SIM 2 · 0700 111 002</option>
@@ -61,111 +80,148 @@
 
   <div class="phone">
     <div class="brand">SIKIKA · *384#</div>
-    <div id="screen" class="screen idle">Type *384# then press Dial.
-In a session: 0 = back, 00 = main, 99 = more.</div>
-    <div class="inputline"><span id="input"></span><span class="cursor">▌</span></div>
-    <div class="keys">
-      <button class="key" data-k="1">1</button>
-      <button class="key" data-k="2">2</button>
-      <button class="key" data-k="3">3</button>
-      <button class="key" data-k="4">4</button>
-      <button class="key" data-k="5">5</button>
-      <button class="key" data-k="6">6</button>
-      <button class="key" data-k="7">7</button>
-      <button class="key" data-k="8">8</button>
-      <button class="key" data-k="9">9</button>
-      <button class="key" data-k="*">*</button>
-      <button class="key" data-k="0">0</button>
-      <button class="key" data-k="#">#</button>
+    <div class="tabs">
+      <button class="tab active" id="tab-ussd">&#9742; USSD</button>
+      <button class="tab" id="tab-sms">&#9993; Messages</button>
     </div>
-    <div class="actions">
-      <button class="act call" id="call">Dial</button>
-      <button class="act end" id="end">Clear</button>
+
+    <!-- USSD app -->
+    <div id="ussdApp">
+      <div id="screen" class="screen idle">Type *384# then press Dial.
+In a session: 0 = back, 00 = main, 99 = more.</div>
+      <div class="inputline"><span id="input"></span><span class="cursor">&#9612;</span></div>
+      <div class="keys">
+        <button class="key" data-k="1">1</button><button class="key" data-k="2">2</button><button class="key" data-k="3">3</button>
+        <button class="key" data-k="4">4</button><button class="key" data-k="5">5</button><button class="key" data-k="6">6</button>
+        <button class="key" data-k="7">7</button><button class="key" data-k="8">8</button><button class="key" data-k="9">9</button>
+        <button class="key" data-k="*">*</button><button class="key" data-k="0">0</button><button class="key" data-k="#">#</button>
+      </div>
+      <div class="actions">
+        <button class="act call" id="call">Dial</button>
+        <button class="act end" id="end">Clear</button>
+      </div>
+    </div>
+
+    <!-- Messages app -->
+    <div id="smsApp" class="hidden">
+      <div id="thread" class="thread"></div>
+      <div class="composer">
+        <input id="smsInput" placeholder="Ask Sikika a question…" autocomplete="off" />
+        <button id="smsSend">Send</button>
+      </div>
+      <button class="demo-btn" id="demoAlert">&#128226; Simulate: new bill alert to this phone</button>
     </div>
   </div>
+
   <div id="status" class="status"></div>
-  <a class="link" href="/" target="_blank">↗ Open county dashboard</a>
+  <a class="link" href="/" target="_blank">&#8599; Open county dashboard</a>
 
   <script>
-    let active = false;      // is a USSD session open?
-    let history = [];        // accumulated menu choices, joined with '*'
-    let input = '';          // digits typed for the current step
-
     const $ = (id) => document.getElementById(id);
-    const setInput = () => { $('input').textContent = input; };
     const setStatus = (t) => { $('status').textContent = t; };
+    const phone = () => $('sim').value;
+    let tab = 'ussd';
 
-    function showScreen(text, idle = false) {
-      const s = $('screen');
-      s.classList.toggle('idle', idle);
-      s.textContent = text;
+    // ---------- Tabs ----------
+    function switchTab(next) {
+      tab = next;
+      $('tab-ussd').classList.toggle('active', next === 'ussd');
+      $('tab-sms').classList.toggle('active', next === 'sms');
+      $('ussdApp').classList.toggle('hidden', next !== 'ussd');
+      $('smsApp').classList.toggle('hidden', next !== 'sms');
+      setStatus('');
+      if (next === 'sms') loadThread();
     }
+    $('tab-ussd').addEventListener('click', () => switchTab('ussd'));
+    $('tab-sms').addEventListener('click', () => switchTab('sms'));
 
+    // ================= USSD =================
+    let active = false, history = [], input = '';
+    const SERVICE_CODE = '*384#';
+    const setInput = () => { $('input').textContent = input; };
+    function showScreen(text, idle = false) {
+      const s = $('screen'); s.classList.toggle('idle', idle); s.textContent = text;
+    }
     async function post(textField) {
-      const body = new URLSearchParams({
-        phoneNumber: $('sim').value,
-        text: textField,
-        sessionId: 'sim-' + Date.now(),
-        serviceCode: '*384#',
-      });
+      const body = new URLSearchParams({ phoneNumber: phone(), text: textField, sessionId: 'sim-' + Date.now(), serviceCode: SERVICE_CODE });
       const r = await fetch('/ussd', { method: 'POST', body });
       return await r.text();
     }
-
     function render(reply) {
-      const isEnd = reply.startsWith('END');
-      const isCon = reply.startsWith('CON');
-      const screen = reply.replace(/^(CON|END)\s?/, '');
-      showScreen(screen);
+      const isEnd = reply.startsWith('END'), isCon = reply.startsWith('CON');
+      showScreen(reply.replace(/^(CON|END)\s?/, ''));
       if (isCon) { active = true; setStatus('Session open — enter a choice, then Send.'); }
       else if (isEnd) { active = false; setStatus('Session ended. Press Dial to start again.'); }
-      else { active = false; setStatus(''); }
       $('call').textContent = active ? 'Send' : 'Dial';
     }
-
-    const SERVICE_CODE = '*384#';
-
     async function dial() {
-      // A real phone only sends the request once the FULL code is dialled.
-      if (input !== SERVICE_CODE) {
-        setStatus('Dial the full code ' + SERVICE_CODE + ' then press Dial.');
-        return;
-      }
-      history = []; input = ''; setInput();
-      setStatus('Dialing ' + SERVICE_CODE + ' …');
-      render(await post(''));   // initial USSD request has empty text
+      if (input !== SERVICE_CODE) { setStatus('Dial the full code ' + SERVICE_CODE + ' then press Dial.'); return; }
+      history = []; input = ''; setInput(); setStatus('Dialing ' + SERVICE_CODE + ' …');
+      render(await post(''));
     }
-
-    async function send() {
+    async function ussdSend() {
       if (!input) { setStatus('Enter a choice first.'); return; }
-      history.push(input);
-      input = ''; setInput();
-      setStatus('Sending …');
+      history.push(input); input = ''; setInput(); setStatus('Sending …');
       render(await post(history.join('*')));
     }
-
-    // Keypad
     document.querySelectorAll('.key').forEach(k =>
       k.addEventListener('click', () => { input += k.dataset.k; setInput(); }));
-
-    // Green button: Dial when idle, Send when a session is open
-    $('call').addEventListener('click', () => (active ? send() : dial()));
-
-    // Red button: clear current input, or reset the whole session
+    $('call').addEventListener('click', () => (active ? ussdSend() : dial()));
     $('end').addEventListener('click', () => {
       if (input) { input = ''; setInput(); return; }
-      active = false; history = [];
-      $('call').textContent = 'Dial';
+      active = false; history = []; $('call').textContent = 'Dial';
       showScreen('Type *384# then press Dial.\nIn a session: 0 = back, 00 = main, 99 = more.', true);
       setStatus('');
     });
-
-    // Physical keyboard convenience
     document.addEventListener('keydown', (e) => {
+      if (tab !== 'ussd') return;                       // don't hijack the SMS box
+      const el = document.activeElement;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) return;
       if (/^[0-9*#]$/.test(e.key)) { input += e.key; setInput(); }
-      else if (e.key === 'Enter') { active ? send() : dial(); }
+      else if (e.key === 'Enter') { active ? ussdSend() : dial(); }
       else if (e.key === 'Backspace') { input = input.slice(0, -1); setInput(); }
     });
+
+    // ================= Messages =================
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+    }
+    async function loadThread() {
+      const r = await fetch('/api/sms?phone=' + encodeURIComponent(phone()));
+      const data = await r.json();
+      const box = $('thread');
+      if (!data.messages || !data.messages.length) {
+        box.innerHTML = '<div class="empty-thread">No messages yet.\nAsk Sikika a question, or tap “new bill alert”.</div>';
+        return;
+      }
+      box.innerHTML = data.messages.map(m =>
+        `<div class="bubble ${m.direction === 'out' ? 'from-sikika' : 'from-me'}">${esc(m.body)}</div>`
+      ).join('');
+      box.scrollTop = box.scrollHeight;
+    }
+    async function smsSend() {
+      const text = $('smsInput').value.trim();
+      if (!text) return;
+      $('smsInput').value = '';
+      setStatus('Sending SMS …');
+      const body = new URLSearchParams({ from: phone(), text });
+      await fetch('/sms', { method: 'POST', body });
+      setStatus('');
+      await loadThread();
+    }
+    $('smsSend').addEventListener('click', smsSend);
+    $('smsInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') smsSend(); });
+    $('demoAlert').addEventListener('click', async () => {
+      setStatus('Publishing a new bill …');
+      await fetch('/api/demo/notify?phone=' + encodeURIComponent(phone()) + '&project_id=1', { method: 'POST' });
+      setStatus('');
+      await loadThread();
+    });
+
+    // reload thread when the SIM changes (if on Messages)
+    $('sim').addEventListener('change', () => { if (tab === 'sms') loadThread(); });
+    // light polling so notifications appear while viewing Messages
+    setInterval(() => { if (tab === 'sms') loadThread(); }, 5000);
   </script>
 </body>
 </html>

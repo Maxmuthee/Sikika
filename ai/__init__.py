@@ -8,12 +8,19 @@ All calls go through the Claude API. Language is a single `lang` code threaded
 everywhere: "sw" (Kiswahili), "ki" (Gikuyu), "en" (English).
 """
 
-from .core import simplify_budget, simplify_pdf, translate_feedback, aggregate_feedback
+from .core import (
+    answer_sms,
+    simplify_budget,
+    simplify_pdf,
+    translate_feedback,
+    aggregate_feedback,
+)
 from .prompts import LANGUAGES, is_supported
 
 __all__ = [
     "simplify_budget",
     "simplify_pdf",
+    "answer_sms",
     "translate_feedback",
     "aggregate_feedback",
     "LANGUAGES",

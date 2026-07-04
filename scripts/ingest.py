@@ -31,12 +31,13 @@ def ingest() -> None:
                         s = simplify_pdf(pdf, lang)
                     else:
                         s = simplify_budget(project["raw_text"], lang)
+                    # Safety net: cap USSD-bound fields so a screen can't overflow.
                     store.upsert_translation(
                         pid, lang,
-                        project_name=s.project_name,
-                        sms_alert=s.sms_alert,
-                        civic_education=s.civic_education,
-                        data_summary=s.data_summary,
+                        project_name=s.project_name.strip()[:60],
+                        sms_alert=s.sms_alert.strip()[:160],
+                        civic_education=s.civic_education.strip()[:130],
+                        data_summary=s.data_summary.strip()[:130],
                     )
                     print(f"  {lang}: {s.sms_alert[:70]}...")
                 except Exception as e:  # keep going; one language failing is not fatal

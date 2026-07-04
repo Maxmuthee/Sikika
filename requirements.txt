@@ -1,7 +1,8 @@
 # Sikika — core dependencies
-anthropic>=0.69          # Claude API (AI simplification, translation, aggregation)
+openai>=1.40             # LLM client (points at DeepSeek's OpenAI-compatible API)
+pypdf>=4.0               # local PDF text extraction (DeepSeek has no PDF input)
 pydantic>=2.7            # structured-output schemas
-python-dotenv>=1.0       # load ANTHROPIC_API_KEY from .env
+python-dotenv>=1.0       # load API key/base URL from .env
 
 # Web / USSD layer (used from Step 3 onward)
 fastapi>=0.111
