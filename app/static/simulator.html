@@ -186,6 +186,10 @@ In a session: 0 = back, 00 = main, 99 = more.</div>
     function esc(s) {
       return String(s ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
     }
+    function linkify(s) {
+      // s is already HTML-escaped; wrap any URL so smartphone users can tap it.
+      return s.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener" style="color:#5eead4">$1</a>');
+    }
     async function loadThread() {
       const r = await fetch('/api/sms?phone=' + encodeURIComponent(phone()));
       const data = await r.json();
@@ -195,7 +199,7 @@ In a session: 0 = back, 00 = main, 99 = more.</div>
         return;
       }
       box.innerHTML = data.messages.map(m =>
-        `<div class="bubble ${m.direction === 'out' ? 'from-sikika' : 'from-me'}">${esc(m.body)}</div>`
+        `<div class="bubble ${m.direction === 'out' ? 'from-sikika' : 'from-me'}">${linkify(esc(m.body))}</div>`
       ).join('');
       box.scrollTop = box.scrollHeight;
     }

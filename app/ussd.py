@@ -297,7 +297,7 @@ def _browse(phone_hash: str, reg, text: str) -> str:
     if len(after_sub) == 1:
         return (
             f"CON {lbl['menu']}\n{lbl['opt_civic']}\n{lbl['opt_data']}\n"
-            f"{lbl['opt_vote']}\n{lbl['opt_voice']}{_footer_deep(lbl)}"
+            f"{lbl['opt_vote']}{_footer_deep(lbl)}"
         )
 
     action = after_sub[1]
@@ -332,9 +332,6 @@ def _browse(phone_hash: str, reg, text: str) -> str:
             return f"CON {lbl['invalid']}{_footer_deep(lbl)}"
         store.record_vote(project["id"], nullifier, vchoice)
         return f"CON {lbl['vote_done']}{_footer_deep(lbl)}"
-
-    if action == "4":  # voice / IVR callback note
-        return f"CON {lbl['voice_note']}{_footer_deep(lbl)}"
 
     return f"CON {lbl['invalid']}{_footer_deep(lbl)}"
 

@@ -16,7 +16,7 @@ import logging
 from pathlib import Path
 
 from fastapi import FastAPI, Form
-from fastapi.responses import FileResponse, PlainTextResponse
+from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
 
 from ai import aggregate_feedback, answer_sms, translate_feedback
 from ai.core import FeedbackAnalysis
@@ -24,7 +24,7 @@ from ai.core import FeedbackAnalysis
 from . import store
 from . import ussd as ussd_flow  # aliased: the /ussd route function must not shadow the module
 from .hashing import hash_phone
-from .notify import deliver, notify_new_project, send_sms
+from .notify import bill_link, deliver, notify_new_project, send_sms
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("sikika")
@@ -55,6 +55,57 @@ def dashboard() -> FileResponse:
 def simulator() -> FileResponse:
     """Feature-phone USSD simulator — drives /ussd offline for live demos."""
     return FileResponse(_STATIC / "simulator.html")
+
+
+@app.get("/bill/{project_id}", response_class=HTMLResponse)
+def bill_page(project_id: int) -> str:
+    """Mobile-friendly bill/project page — where an SMS link lands a smartphone user."""
+    p = store.get_project(project_id)
+    if p is None:
+        return "<h1>Not found</h1>"
+
+    def esc(s: str) -> str:
+        return (s or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+    langs = [("Kiswahili", "sw"), ("Gikuyu", "ki"), ("English", "en")]
+    blocks = ""
+    for label, code in langs:
+        tr = store.get_translation(project_id, code)
+        if tr:
+            blocks += (
+                f"<div class='lang'><h3>{label}</h3>"
+                f"<p><b>{esc(tr['civic_education'])}</b></p>"
+                f"<p class='muted'>{esc(tr['data_summary'])}</p></div>"
+            )
+    src = p["source_url"]
+    src_btn = (f"<a class='btn' href='{esc(src)}' target='_blank' rel='noopener'>"
+               f"Read the full official document &rarr;</a>") if src else ""
+
+    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>{esc(p['name_en'])} — Sikika</title>
+<style>
+ body{{margin:0;background:#f6f7f9;color:#1a1d21;font:16px/1.6 system-ui,sans-serif}}
+ .wrap{{max-width:680px;margin:0 auto;padding:20px}}
+ header{{background:#0f766e;color:#fff;padding:20px}}
+ header .w{{max-width:680px;margin:0 auto}} h1{{margin:.2em 0;font-size:22px}}
+ .badge{{display:inline-block;background:rgba(255,255,255,.2);padding:2px 10px;border-radius:999px;font-size:13px}}
+ .lang{{background:#fff;border:1px solid #e4e7eb;border-radius:12px;padding:14px 16px;margin:14px 0}}
+ .lang h3{{margin:.1em 0;color:#0b5a54;font-size:15px}} .muted{{color:#5b6470}}
+ .btn{{display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:12px 18px;border-radius:10px;margin:8px 0;font-weight:600}}
+ details{{background:#fff;border:1px solid #e4e7eb;border-radius:12px;padding:12px 16px;margin:14px 0}}
+ summary{{cursor:pointer;font-weight:600}} .src{{color:#5b6470;font-size:14px;white-space:pre-wrap}}
+ footer{{color:#5b6470;font-size:13px;text-align:center;padding:20px}}
+</style></head><body>
+<header><div class="w"><span class="badge">{esc(p['ward'])} &middot; {esc(p['status'])}</span>
+<h1>{esc(p['name_en'])}</h1></div></header>
+<div class="wrap">
+ {blocks}
+ {src_btn}
+ <details><summary>Official source text</summary><p class="src">{esc(p['raw_text'])}</p></details>
+</div>
+<footer>Sikika &middot; dial *384# on any phone &middot; <a href="/">county dashboard</a></footer>
+</body></html>"""
 
 
 @app.get("/api/projects")
@@ -148,7 +199,8 @@ def demo_notify(phone: str, project_id: int = 1) -> dict:
     reg = store.get_registration(hash_phone(phone))
     lang = reg["lang"] if reg else "sw"
     tr = store.get_translation(project_id, lang)
-    msg = tr["sms_alert"] if tr else f"Sikika: {project['name_en']} - dial *384#."
+    base = tr["sms_alert"] if tr else f"Sikika: {project['name_en']} - dial *384#."
+    msg = f"{base}\nSoma: {bill_link(project)}"
     deliver(phone, msg)
     return {"sent": msg}
 
@@ -186,17 +238,7 @@ def _handle_sms(body, phone_hash, phone, reg, lang_hint, history) -> str:
     # HELP / MSAADA
     if up in ("HELP", "MSAADA", "SIKIKA"):
         return ("Sikika: Uliza swali lolote kuhusu bajeti au miswada ya Nakuru. "
-                "Tuma 'SIKIZA <namba>' kusikia kwa sauti. Piga *384#.")
-
-    # SIKIZA <project_id> -> voice/IVR callback (simulated)
-    if up.startswith(("SIKIZA", "SIKILIZA", "LISTEN")):
-        parts = body.split()
-        pid = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else None
-        project = store.get_project(pid) if pid else None
-        if project is None:
-            return "Sikika: Tuma 'SIKIZA <namba ya mradi>'. / Send 'SIKIZA <project number>'."
-        return (f"Sikika: Tunakupigia simu kusoma '{project['name_en']}' kwa sauti. "
-                f"/ We will call you to read '{project['name_en']}' aloud.")
+                "Tuma 'MAONI <ujumbe>' kutoa maoni. Piga *384#.")
 
     # MAONI <text> / FEEDBACK <text> -> capture feedback
     if up.startswith(("MAONI", "FEEDBACK")):

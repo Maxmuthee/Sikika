@@ -3,8 +3,11 @@ openai>=1.40             # LLM client (points at DeepSeek's OpenAI-compatible AP
 pypdf>=4.0               # local PDF text extraction (DeepSeek has no PDF input)
 pydantic>=2.7            # structured-output schemas
 python-dotenv>=1.0       # load API key/base URL from .env
+psycopg[binary]>=3.1     # PostgreSQL driver (Neon); SQLite needs no driver
+psycopg-pool>=3.2        # connection pooling for the remote PostgreSQL
 
 # Web / USSD layer (used from Step 3 onward)
 fastapi>=0.111
 uvicorn[standard]>=0.30
 python-multipart>=0.0.9   # required by FastAPI for USSD/SMS form posts
+africastalking>=1.2       # USSD/SMS gateway (sandbox for the demo)

@@ -272,6 +272,20 @@ PROJECTS = [
 ]
 
 
+# Where a smartphone user can read the full official document.
+NAKURU_BUDGET_URL = "https://www.nakuru.go.ke/ova_sev/budgeting/"
+PARLIAMENT_BILLS_URL = "https://www.parliament.go.ke/the-national-assembly/house-business/bills-tracker"
+EXPLOSIVES_BILL_URL = "https://mining.go.ke/sites/default/files/2026-06/THE%20EXPLOSIVES%20BILL.pdf"
+
+
+def _source_url(p: dict) -> str:
+    if p.get("pdf"):
+        return EXPLOSIVES_BILL_URL
+    if p["status"] == "Bill":
+        return PARLIAMENT_BILLS_URL
+    return NAKURU_BUDGET_URL
+
+
 def seed_all() -> None:
     store.init_db()
     seeded = []
@@ -280,8 +294,12 @@ def seed_all() -> None:
             ward=p["sub"], name_en=p["name_en"], raw_text=p["raw"],
             pdf_path=p.get("pdf"), status=p["status"],
         )
+        store.set_source_url(pid, _source_url(p))
+        # Only seed the hand-written fallback where no translation exists yet —
+        # never clobber AI-generated content from scripts/ingest.py.
         for lang, t in p["t"].items():
-            store.upsert_translation(pid, lang, **t)
+            if not store.translation_exists(pid, lang):
+                store.upsert_translation(pid, lang, **t)
         seeded.append((pid, p["sub"], p["name_en"]))
 
     print("Seeded projects (idempotent):")
