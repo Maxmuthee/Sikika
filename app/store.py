@@ -248,6 +248,23 @@ def register(phone_hash: str, phone_number: str, id_hash: str,
         return "ok"
 
 
+def update_registration(phone_hash: str, lang: Optional[str] = None,
+                        sub_county: Optional[str] = None, ward: Optional[str] = None) -> None:
+    """Update a citizen's profile (language and/or home area)."""
+    sets, vals = [], []
+    if lang is not None:
+        sets.append("lang = ?"); vals.append(lang)
+    if sub_county is not None:
+        sets.append("sub_county = ?"); vals.append(sub_county)
+    if ward is not None:
+        sets.append("ward = ?"); vals.append(ward)
+    if not sets:
+        return
+    vals.append(phone_hash)
+    with _conn() as c:
+        c.execute(f"UPDATE registrations SET {', '.join(sets)} WHERE phone_hash = ?", vals)
+
+
 def registrations_in(sub_county: str, ward: Optional[str] = None) -> list[sqlite3.Row]:
     """Registered citizens in a sub-county (optionally a specific ward)."""
     with _conn() as c:

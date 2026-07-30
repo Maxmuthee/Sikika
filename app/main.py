@@ -23,6 +23,7 @@ from ai.core import FeedbackAnalysis
 
 from . import store
 from . import ussd as ussd_flow  # aliased: the /ussd route function must not shadow the module
+from .anon import anon_name
 from .hashing import hash_phone
 from .notify import bill_link, deliver, notify_new_project, send_sms
 
@@ -220,6 +221,17 @@ def county_brief(project_id: int) -> dict:
         "ward": project["ward"],
         "votes": tally,
         "feedback_count": len(rows),
+        # Individual feedback shown under an anonymous, stable display name —
+        # never the hash. Same citizen -> same name (grouped), unlinkable to ID.
+        "feedback": [
+            {
+                "name": anon_name(r["phone_hash"]),
+                "sentiment": r["sentiment"],
+                "theme": r["theme"],
+                "text": r["english"],
+            }
+            for r in rows
+        ],
     }
     if rows:
         items = [

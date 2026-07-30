@@ -22,6 +22,7 @@ import math
 from . import store
 from . import wards as W
 from .hashing import hash_id, hash_phone, vote_nullifier
+from .notify import deliver
 
 LANG_BY_CHOICE = {"1": "sw", "2": "ki", "3": "en"}
 
@@ -59,13 +60,24 @@ LABELS = {
         "pick_ward": "Chagua kata (ward) yako:",
         "id_taken": "Kitambulisho hiki kimeshasajiliwa. Asante.",
         "registered": "Umesajiliwa! Utapokea arifa za miradi ya {ward}, {sub}. Piga *384# kuona miradi.",
+        "sms_registered": "Sikika: Umesajiliwa kwa {ward}, {sub}. Utapokea arifa za miradi mipya. Asante!",
+        "sms_voted": "Sikika: Kura yako kuhusu '{project}' imepokelewa. Asante kwa kushiriki!",
         "page": "Ukurasa",
         "no_projects": "Hakuna miradi katika eneo hili kwa sasa. Asante.",
         "projects": "Miradi na miswada:",
+        "welcome": "Karibu Sikika.",
+        "menu_my_area": "1. Miradi ya {area}",
+        "menu_other": "2. Maeneo mengine",
+        "menu_profile": "3. Badilisha wasifu",
+        "profile_menu": "Badilisha wasifu:",
+        "change_lang": "1. Lugha",
+        "change_area": "2. Eneo",
+        "choose_lang": "Chagua lugha mpya:",
+        "lang_changed": "Lugha imebadilishwa. Asante.",
+        "area_changed": "Eneo limebadilishwa: {ward}, {sub}. Asante.",
         "menu": "Chagua kitendo:",
-        "opt_civic": "1. Mradi/mswada huu ni nini?",
-        "opt_data": "2. Angalia bajeti/maelezo",
-        "opt_vote": "3. Piga kura",
+        "opt_about": "1. Kuhusu (maelezo na bajeti)",
+        "opt_vote": "2. Piga kura",
         "opt_voice": "4. Sikiliza kwa sauti (utapigiwa)",
         "ask_vote_id": "Ili kupiga kura, weka nambari yako ya ID:",
         "vote_id_bad": "ID hailingani na usajili wako. Bonyeza 0 ujaribu tena.",
@@ -87,13 +99,24 @@ LABELS = {
         "pick_ward": "Thura ward yaku:",
         "id_taken": "Kitambulisho giki nikiandikithie. Ni wega.",
         "registered": "Niwandikithia! Niukwamukira uhoro wa miradi ya {ward}, {sub}. Hura *384# kuona miradi.",
+        "sms_registered": "Sikika: Niwandikithia {ward}, {sub}. Niukwamukira uhoro wa miradi mieru. Ni wega!",
+        "sms_voted": "Sikika: Kura yaku igulyu ya '{project}' niyamukirwo. Ni wega ni gukorwo!",
         "page": "Ithangu",
         "no_projects": "Gutiri miradi gicigo giki riu. Ni wega.",
         "projects": "Miradi na miswada:",
+        "welcome": "Wamukirwo Sikika.",
+        "menu_my_area": "1. Miradi ya {area}",
+        "menu_other": "2. Icigo iria ingi",
+        "menu_profile": "3. Garura maundu maku",
+        "profile_menu": "Garura:",
+        "change_lang": "1. Ruthiomi",
+        "change_area": "2. Gicigo",
+        "choose_lang": "Thura ruthiomi rweru:",
+        "lang_changed": "Ruthiomi niwagaruruo. Ni wega.",
+        "area_changed": "Gicigo nikiagaruruo: {ward}, {sub}. Ni wega.",
         "menu": "Thura undu:",
-        "opt_civic": "1. Mradi/mswada uyu ni kii?",
-        "opt_data": "2. Rora mbeca/maundu",
-        "opt_vote": "3. Hura kura",
+        "opt_about": "1. Uhoro (maelezo na mbeca)",
+        "opt_vote": "2. Hura kura",
         "opt_voice": "4. Thikiriria na mugambo (niukuhurwo)",
         "ask_vote_id": "Kuhura kura, ikira namba yaku ya ID:",
         "vote_id_bad": "ID ndiiganaine na kwiyandikithia gwaku. Hinya 0 ugerie.",
@@ -115,13 +138,24 @@ LABELS = {
         "pick_ward": "Choose your ward:",
         "id_taken": "This ID is already registered. Thank you.",
         "registered": "Registered! You'll get alerts for {ward}, {sub}. Dial *384# to view projects.",
+        "sms_registered": "Sikika: You are registered for {ward}, {sub}. You'll get alerts on new projects. Thank you!",
+        "sms_voted": "Sikika: Your vote on '{project}' has been received. Thank you for taking part!",
         "page": "Page",
         "no_projects": "No projects in this area yet. Thank you.",
         "projects": "Projects & bills:",
+        "welcome": "Welcome to Sikika.",
+        "menu_my_area": "1. Projects in {area}",
+        "menu_other": "2. Other areas",
+        "menu_profile": "3. Change my profile",
+        "profile_menu": "Change profile:",
+        "change_lang": "1. Language",
+        "change_area": "2. Area",
+        "choose_lang": "Choose new language:",
+        "lang_changed": "Language updated. Thank you.",
+        "area_changed": "Area updated: {ward}, {sub}. Thank you.",
         "menu": "Choose an action:",
-        "opt_civic": "1. What is this project/bill?",
-        "opt_data": "2. View budget/details",
-        "opt_vote": "3. Vote",
+        "opt_about": "1. About (details & budget)",
+        "opt_vote": "2. Vote",
         "opt_voice": "4. Listen by voice (we'll call you)",
         "ask_vote_id": "To vote, enter your ID number:",
         "vote_id_bad": "ID does not match your registration. Press 0 to retry.",
@@ -145,10 +179,10 @@ def _resolve(text: str) -> list[str]:
     out: list[str] = []
     for p in (text.split("*") if text else []):
         if p == "00":
-            out = out[:1]
+            out = []               # jump back to the root menu
         elif p == "0":
             if out:
-                out.pop()
+                out.pop()          # back one step
         else:
             out.append(p)
     return out
@@ -251,36 +285,52 @@ def _signup(phone_number: str, phone_hash: str, text: str) -> str:
     status = store.register(phone_hash, phone_number, hash_id(id_raw), lang, sub, ward)
     if status == "id_taken":
         return f"END {lbl['id_taken']}"
+    # Confirmation SMS so the citizen has a record in their inbox.
+    deliver(phone_number, lbl["sms_registered"].format(ward=ward, sub=sub))
     return f"END {lbl['registered'].format(ward=ward, sub=sub)}"
 
 
 # --- browse (registered users) ----------------------------------------------
 def _browse(phone_hash: str, reg, text: str) -> str:
     resolved = _resolve(text)
-
-    if not resolved:
-        return LANGUAGE_MENU
-    lang = LANG_BY_CHOICE.get(resolved[0])
-    if lang is None:
-        return INVALID_BILINGUAL
+    lang = reg["lang"] if reg["lang"] in LABELS else "sw"
     lbl = LABELS[lang]
 
-    # Sub-county selection (paged, continuous numbering).
-    choice, after_sub, page = _consume_paged(resolved[1:], len(SUBCOUNTIES))
-    if choice is None:
-        return _render_paged(lbl, lbl["pick_area"], SUBCOUNTIES, page)
-    sub = _index(SUBCOUNTIES, choice)
-    if sub is None:
-        return f"CON {lbl['invalid']}{_footer_deep(lbl)}"
+    # Main menu — in the citizen's SAVED language (no re-selection).
+    if not resolved:
+        return (
+            f"CON {lbl['welcome']}\n"
+            f"{lbl['menu_my_area'].format(area=reg['sub_county'])}\n"
+            f"{lbl['menu_other']}\n{lbl['menu_profile']}"
+        )
 
-    store.upsert_profile(phone_hash, lang, sub_county=sub, ward=sub)
+    top, rest = resolved[0], resolved[1:]
 
+    if top == "1":  # projects in my saved area (no sub-county re-selection)
+        return _browse_projects(reg, lang, lbl, reg["sub_county"], rest)
+
+    if top == "2":  # browse another area
+        choice, after_sub, page = _consume_paged(rest, len(SUBCOUNTIES))
+        if choice is None:
+            return _render_paged(lbl, lbl["pick_area"], SUBCOUNTIES, page)
+        sub = _index(SUBCOUNTIES, choice)
+        if sub is None:
+            return f"CON {lbl['invalid']}{_footer_deep(lbl)}"
+        return _browse_projects(reg, lang, lbl, sub, after_sub)
+
+    if top == "3":  # change profile (language / area)
+        return _change_profile(phone_hash, reg, lbl, rest)
+
+    return f"CON {lbl['invalid']}{_footer_deep(lbl)}"
+
+
+def _browse_projects(reg, lang, lbl, sub, tokens):
     projects = store.list_projects(sub)
     if not projects:
         return f"CON {lbl['no_projects']}{_footer_deep(lbl)}"
 
     # Choose a project.
-    if not after_sub:
+    if not tokens:
         lines = []
         for i, p in enumerate(projects):
             tr = store.get_translation(p["id"], lang)
@@ -288,50 +338,79 @@ def _browse(phone_hash: str, reg, text: str) -> str:
             lines.append(f"{i+1}. {name}")
         return f"CON {lbl['projects']}\n" + "\n".join(lines) + _footer_deep(lbl)
 
-    project = _pick(projects, after_sub[0])
+    project = _pick(projects, tokens[0])
     if project is None:
         return f"CON {lbl['invalid']}{_footer_deep(lbl)}"
     tr = store.get_translation(project["id"], lang)
 
-    # Project action menu.
-    if len(after_sub) == 1:
-        return (
-            f"CON {lbl['menu']}\n{lbl['opt_civic']}\n{lbl['opt_data']}\n"
-            f"{lbl['opt_vote']}{_footer_deep(lbl)}"
-        )
+    # Action menu: 1. About (details + budget, paired), 2. Vote.
+    if len(tokens) == 1:
+        return f"CON {lbl['menu']}\n{lbl['opt_about']}\n{lbl['opt_vote']}{_footer_deep(lbl)}"
 
-    action = after_sub[1]
+    action = tokens[1]
 
-    if action == "1":  # civic education
-        body = tr["civic_education"] if tr else project["raw_text"][:130]
+    if action == "1":  # About — explanation + facts (works for bills with no budget)
+        civic = tr["civic_education"] if tr else project["raw_text"][:120]
+        data = tr["data_summary"] if tr else ""
+        body = civic + (f"\n{data}" if data else "")
         return f"CON {body}{_footer_deep(lbl)}"
 
-    if action == "2":  # data summary
-        body = tr["data_summary"] if tr else project["raw_text"][:130]
-        return f"CON {body}{_footer_deep(lbl)}"
-
-    if action == "3":  # vote — re-enter ID so one person votes only once
-        # Step a: ask for the ID.
-        if len(after_sub) == 2:
+    if action == "2":  # Vote — re-enter ID so one person votes only once
+        if len(tokens) == 2:
             return f"CON {lbl['ask_vote_id']}"
-        entered_id = after_sub[2]
-        # Must be the caller's own registered ID (verified as a hash).
+        entered_id = tokens[2]
         if not _valid_id(entered_id) or hash_id(entered_id) != reg["id_hash"]:
             return f"CON {lbl['vote_id_bad']}\n{lbl['nav_back']}"
         nullifier = vote_nullifier(entered_id)
         if store.has_voted(project["id"], nullifier):
             return f"CON {lbl['already_voted']}{_footer_deep(lbl)}"
-        # Step b: choose support/oppose.
-        if len(after_sub) == 3:
-            return (
-                f"CON {lbl['vote_prompt']}\n{lbl['opt_support']}\n"
-                f"{lbl['opt_oppose']}{_footer_deep(lbl)}"
-            )
-        vchoice = {"1": "support", "2": "oppose"}.get(after_sub[3])
+        if len(tokens) == 3:
+            return (f"CON {lbl['vote_prompt']}\n{lbl['opt_support']}\n"
+                    f"{lbl['opt_oppose']}{_footer_deep(lbl)}")
+        vchoice = {"1": "support", "2": "oppose"}.get(tokens[3])
         if vchoice is None:
             return f"CON {lbl['invalid']}{_footer_deep(lbl)}"
         store.record_vote(project["id"], nullifier, vchoice)
+        name = tr["project_name"] if tr else project["name_en"]
+        deliver(reg["phone_number"], lbl["sms_voted"].format(project=name))
         return f"CON {lbl['vote_done']}{_footer_deep(lbl)}"
+
+    return f"CON {lbl['invalid']}{_footer_deep(lbl)}"
+
+
+def _change_profile(phone_hash, reg, lbl, tokens):
+    if not tokens:
+        return (f"CON {lbl['profile_menu']}\n{lbl['change_lang']}\n"
+                f"{lbl['change_area']}{_footer_deep(lbl)}")
+
+    which = tokens[0]
+
+    if which == "1":  # change language
+        if len(tokens) == 1:
+            return (f"CON {lbl['choose_lang']}\n1. Kiswahili\n2. Gikuyu\n3. English"
+                    f"{_footer_deep(lbl)}")
+        new_lang = LANG_BY_CHOICE.get(tokens[1])
+        if new_lang is None:
+            return f"CON {lbl['invalid']}{_footer_deep(lbl)}"
+        store.update_registration(phone_hash, lang=new_lang)
+        return f"END {LABELS[new_lang]['lang_changed']}"
+
+    if which == "2":  # change area (sub-county + ward)
+        choice, after_sub, page = _consume_paged(tokens[1:], len(SUBCOUNTIES))
+        if choice is None:
+            return _render_paged(lbl, lbl["pick_area"], SUBCOUNTIES, page)
+        sub = _index(SUBCOUNTIES, choice)
+        if sub is None:
+            return f"CON {lbl['invalid']}{_footer_deep(lbl)}"
+        wards = W.wards_for(sub)
+        wchoice, _after, wpage = _consume_paged(after_sub, len(wards))
+        if wchoice is None:
+            return _render_paged(lbl, lbl["pick_ward"], wards, wpage)
+        ward = _index(wards, wchoice)
+        if ward is None:
+            return f"CON {lbl['invalid']}{_footer_deep(lbl)}"
+        store.update_registration(phone_hash, sub_county=sub, ward=ward)
+        return f"END {lbl['area_changed'].format(ward=ward, sub=sub)}"
 
     return f"CON {lbl['invalid']}{_footer_deep(lbl)}"
 

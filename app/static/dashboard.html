@@ -36,6 +36,8 @@
       border-radius: 8px; padding: 7px 12px; font-size: 13px; cursor: pointer;
     }
     header button:hover { background: rgba(255,255,255,.26); }
+    header select { background: rgba(255,255,255,.16); color: #fff; border: 1px solid rgba(255,255,255,.3); border-radius: 8px; padding: 7px 10px; font-size: 13px; cursor: pointer; }
+    header select option { color: #1a1d21; }
     .wrap { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 20px; max-width: 1200px; margin: 0 auto; }
     @media (max-width: 820px) { .wrap { grid-template-columns: 1fr; } }
     .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
@@ -69,35 +71,98 @@
     .empty { color: var(--muted); padding: 16px; border: 1px dashed var(--line); border-radius: 12px; margin-top: 18px; font-size: 14px; }
     .loop { margin-top: 20px; font-size: 13.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; }
     .loop b { color: var(--ink); }
+    .feedback-list { margin-top: 18px; }
+    .fb { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin: 8px 0; }
+    .fb-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .fb-name { font-weight: 600; font-size: 13.5px; }
+    .fb-tag { font-size: 11.5px; padding: 2px 8px; border-radius: 999px; background: var(--chip); color: var(--muted); }
+    .fb-tag.support { color: var(--support); } .fb-tag.oppose { color: var(--oppose); }
+    .fb-text { margin-top: 5px; font-size: 13.5px; }
     .foot { text-align: center; color: var(--muted); font-size: 12px; padding: 8px 0 24px; }
   </style>
 </head>
 <body>
   <header>
     <h1>Sikika</h1>
-    <span class="sub">Nakuru County — Public Participation Dashboard</span>
+    <span id="subtitle" class="sub">Nakuru County — Public Participation Dashboard</span>
     <span class="spacer"></span>
     <span id="stamp" class="sub"></span>
+    <select id="lang" title="Language / Lugha">
+      <option value="en">English</option>
+      <option value="sw">Kiswahili</option>
+      <option value="ki">Gikuyu</option>
+    </select>
     <button id="refresh">↻ Refresh</button>
   </header>
 
   <div class="wrap">
     <aside class="card list">
-      <h2>Budget items &amp; bills</h2>
+      <h2 id="listHeader">Budget items &amp; bills</h2>
       <div id="projects"></div>
     </aside>
     <main class="card detail" id="detail">
       <div class="empty">Select a project to see citizen participation.</div>
     </main>
   </div>
-  <div class="foot">Sikika · input reaches citizens on feature phones over USSD/SMS · this page turns it into visible action.</div>
+  <div id="foot" class="foot">Sikika · input reaches citizens on feature phones over USSD/SMS · this page turns it into visible action.</div>
 
   <script>
     let projects = [];
     let activeId = null;
+    let lang = localStorage.getItem('sikika_lang') || 'en';
+
+    // UI translations. (Kikuyu is best-effort and should get a native review.)
+    const I18N = {
+      en: {
+        subtitle: "Nakuru County — Public Participation Dashboard",
+        list_header: "Budget items & bills", empty_select: "Select a project to see citizen participation.",
+        no_projects: "No projects yet.", refresh: "↻ Refresh", updated: "updated",
+        vote_one: "vote", vote_many: "votes", feedback_word: "feedback",
+        total_votes: "Total votes", support: "Support", oppose: "Oppose", feedback_received: "Feedback received",
+        brief_kicker: "AI-aggregated brief for county officials", top_concerns: "Top concerns raised by citizens",
+        no_feedback: "No written feedback yet for this item. Votes are shown above; the AI brief appears once citizens send feedback by SMS or USSD.",
+        feedback_kicker: "Citizen feedback (anonymous)", loop_label: "Closing the loop:",
+        foot: "Sikika · input reaches citizens on feature phones over USSD/SMS · this page turns it into visible action.",
+        loop: (v, f) => `${v} citizen vote${v === 1 ? '' : 's'} and ${f} written comment${f === 1 ? '' : 's'} — collected on basic phones, in mother tongue — are now a report the county can act on.`,
+      },
+      sw: {
+        subtitle: "Kaunti ya Nakuru — Dashibodi ya Ushiriki wa Umma",
+        list_header: "Miradi na miswada", empty_select: "Chagua mradi kuona ushiriki wa wananchi.",
+        no_projects: "Hakuna miradi bado.", refresh: "↻ Onyesha upya", updated: "imesasishwa",
+        vote_one: "kura", vote_many: "kura", feedback_word: "maoni",
+        total_votes: "Jumla ya kura", support: "Wanaounga", oppose: "Wanaopinga", feedback_received: "Maoni yaliyopokelewa",
+        brief_kicker: "Muhtasari wa AI kwa maafisa wa kaunti", top_concerns: "Wasiwasi mkuu wa wananchi",
+        no_feedback: "Bado hakuna maoni yaliyoandikwa. Kura zinaonyeshwa juu; muhtasari wa AI utaonekana wananchi watakapotuma maoni.",
+        feedback_kicker: "Maoni ya wananchi (bila majina)", loop_label: "Kufunga mzunguko:",
+        foot: "Sikika · maoni hufika kwa wananchi kupitia USSD/SMS · ukurasa huu unayafanya yaonekane.",
+        loop: (v, f) => `kura ${v} za wananchi na maoni ${f} yaliyoandikwa — yaliyokusanywa kwa simu za kawaida, kwa lugha ya mama — sasa ni ripoti kaunti inaweza kutekeleza.`,
+      },
+      ki: {
+        subtitle: "Kaunti ya Nakuru — Dashibodi ya Kwiyonania kwa Andu",
+        list_header: "Miradi na miswada", empty_select: "Thura mradi wone uria andu maraakwiyonania.",
+        no_projects: "Gutiri miradi o na rimwe.", refresh: "↻ Onania ringi", updated: "niyathondekwo",
+        vote_one: "kura", vote_many: "kura", feedback_word: "maoni",
+        total_votes: "Kura ciothe", support: "Aria maranyita", oppose: "Aria maregana", feedback_received: "Maoni maria mamukiirwo",
+        brief_kicker: "Muhtasari wa AI kuri anene a kaunti", top_concerns: "Maundu manene ma andu",
+        no_feedback: "Gutiri maoni maandike o na rimwe. Kura nicionanagio iguru; muhtasari wa AI niukoonekana andu maratuma maoni.",
+        feedback_kicker: "Maoni ma andu (matari marita)", loop_label: "Kuhinga muthiururuko:",
+        foot: "Sikika · maundu makinyaga andu na USSD/SMS · ithangu riri nirionanagia.",
+        loop: (v, f) => `kura ${v} cia andu na maoni ${f} maandike — maria maunganirio na thimu njiganu, na ruthiomi rwa nyina — riu ni ripoti kaunti ingihota gwika.`,
+      },
+    };
+    const t = (k) => (I18N[lang] || I18N.en)[k];
 
     const el = (id) => document.getElementById(id);
     const pct = (a, b) => (a + b === 0 ? 0 : Math.round((a / (a + b)) * 100));
+
+    function applyStatic() {
+      el('subtitle').textContent = t('subtitle');
+      el('listHeader').textContent = t('list_header');
+      el('foot').textContent = t('foot');
+      el('refresh').textContent = t('refresh');
+      el('lang').value = lang;
+      if (activeId == null) el('detail').innerHTML = `<div class="empty">${t('empty_select')}</div>`;
+    }
 
     async function loadProjects() {
       const r = await fetch('/api/projects');
@@ -106,18 +171,18 @@
       renderList();
       if (activeId == null && projects.length) selectProject(projects[0].id);
       else if (activeId != null) selectProject(activeId);
-      el('stamp').textContent = 'updated ' + new Date().toLocaleTimeString();
+      el('stamp').textContent = t('updated') + ' ' + new Date().toLocaleTimeString();
     }
 
     function renderList() {
       const box = el('projects');
-      if (!projects.length) { box.innerHTML = '<div class="empty">No projects yet.</div>'; return; }
+      if (!projects.length) { box.innerHTML = `<div class="empty">${t('no_projects')}</div>`; return; }
       box.innerHTML = projects.map(p => {
         const v = p.votes || { support: 0, oppose: 0 };
         const total = v.support + v.oppose;
         return `<div class="proj ${p.id === activeId ? 'active' : ''}" data-id="${p.id}">
           <div class="name">${escapeHtml(p.name)}</div>
-          <div class="meta">${escapeHtml(p.ward)} · ${total} vote${total === 1 ? '' : 's'} · ${p.feedback_count} feedback</div>
+          <div class="meta">${escapeHtml(p.ward)} · ${total} ${total === 1 ? t('vote_one') : t('vote_many')} · ${p.feedback_count} ${t('feedback_word')}</div>
         </div>`;
       }).join('');
       box.querySelectorAll('.proj').forEach(n =>
@@ -142,14 +207,26 @@
       let briefHtml;
       if (b) {
         briefHtml = `<div class="brief">
-          <div class="kicker">AI-aggregated brief for county officials</div>
+          <div class="kicker">${t('brief_kicker')}</div>
           <div class="headline">${escapeHtml(b.headline)}</div>
-          <strong>Top concerns raised by citizens</strong>
+          <strong>${t('top_concerns')}</strong>
           <ol>${(b.top_concerns || []).map(c => `<li>${escapeHtml(c)}</li>`).join('')}</ol>
         </div>`;
       } else {
-        briefHtml = `<div class="empty">No written feedback yet for this item. Votes are shown above;
-          the AI brief appears once citizens send feedback by SMS or USSD.</div>`;
+        briefHtml = `<div class="empty">${t('no_feedback')}</div>`;
+      }
+
+      let feedbackHtml = '';
+      if (d.feedback && d.feedback.length) {
+        feedbackHtml = `<div class="feedback-list">
+          <div class="kicker">${t('feedback_kicker')}</div>` +
+          d.feedback.map(f => `<div class="fb">
+            <div class="fb-head">
+              <span class="fb-name">${escapeHtml(f.name)}</span>
+              <span class="fb-tag ${escapeHtml(f.sentiment)}">${escapeHtml(f.sentiment)} · ${escapeHtml(f.theme)}</span>
+            </div>
+            <div class="fb-text">${escapeHtml(f.text)}</div>
+          </div>`).join('') + `</div>`;
       }
 
       el('detail').innerHTML = `
@@ -158,19 +235,18 @@
           <span class="badge">${escapeHtml(d.ward)}</span>
         </div>
         <div class="tiles">
-          <div class="tile"><div class="n">${total}</div><div class="l">Total votes</div></div>
-          <div class="tile support"><div class="n">${v.support}</div><div class="l">Support</div></div>
-          <div class="tile oppose"><div class="n">${v.oppose}</div><div class="l">Oppose</div></div>
-          <div class="tile"><div class="n">${d.feedback_count}</div><div class="l">Feedback received</div></div>
+          <div class="tile"><div class="n">${total}</div><div class="l">${t('total_votes')}</div></div>
+          <div class="tile support"><div class="n">${v.support}</div><div class="l">${t('support')}</div></div>
+          <div class="tile oppose"><div class="n">${v.oppose}</div><div class="l">${t('oppose')}</div></div>
+          <div class="tile"><div class="n">${d.feedback_count}</div><div class="l">${t('feedback_received')}</div></div>
         </div>
         <div class="bar" role="img" aria-label="${sPct}% support, ${oPct}% oppose">
           <div class="s" style="width:${sPct}%"></div><div class="o" style="width:${oPct}%"></div>
         </div>
-        <div class="barlabels"><span>Support ${sPct}%</span><span>Oppose ${oPct}%</span></div>
+        <div class="barlabels"><span>${t('support')} ${sPct}%</span><span>${t('oppose')} ${oPct}%</span></div>
         ${briefHtml}
-        <div class="loop"><b>Closing the loop:</b> ${total} citizen vote${total === 1 ? '' : 's'}
-          and ${d.feedback_count} written comment${d.feedback_count === 1 ? '' : 's'} —
-          collected on basic phones, in mother tongue — are now a report the county can act on.</div>`;
+        ${feedbackHtml}
+        <div class="loop"><b>${t('loop_label')}</b> ${t('loop')(total, d.feedback_count)}</div>`;
     }
 
     function escapeHtml(s) {
@@ -179,6 +255,14 @@
     }
 
     el('refresh').addEventListener('click', loadProjects);
+    el('lang').addEventListener('change', (e) => {
+      lang = e.target.value;
+      localStorage.setItem('sikika_lang', lang);
+      applyStatic();
+      renderList();
+      if (activeId != null) selectProject(activeId);
+    });
+    applyStatic();
     loadProjects();
     setInterval(loadProjects, 15000);
   </script>

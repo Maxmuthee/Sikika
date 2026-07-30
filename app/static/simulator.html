@@ -51,7 +51,8 @@
       background: #0f1319; border-radius: 8px; padding: 10px; height: 300px;
       overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
     }
-    .bubble { max-width: 82%; padding: 8px 10px; border-radius: 12px; font-size: 13px; line-height: 1.35; white-space: pre-wrap; }
+    .bubble { max-width: 82%; padding: 8px 10px; border-radius: 12px; font-size: 13px; line-height: 1.35; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .bubble a { color: #5eead4; word-break: break-all; }
     .from-sikika { align-self: flex-start; background: #14342f; color: #d7f2ea; border-bottom-left-radius: 3px; }
     .from-me { align-self: flex-end; background: #1e3a8a; color: #e6edff; border-bottom-right-radius: 3px; }
     .empty-thread { margin: auto; color: #475569; font-size: 12.5px; text-align: center; }
@@ -188,7 +189,7 @@ In a session: 0 = back, 00 = main, 99 = more.</div>
     }
     function linkify(s) {
       // s is already HTML-escaped; wrap any URL so smartphone users can tap it.
-      return s.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener" style="color:#5eead4">$1</a>');
+      return s.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
     }
     async function loadThread() {
       const r = await fetch('/api/sms?phone=' + encodeURIComponent(phone()));
