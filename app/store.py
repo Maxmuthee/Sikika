@@ -364,6 +364,24 @@ def all_projects() -> list[sqlite3.Row]:
         return c.execute("SELECT * FROM projects ORDER BY id").fetchall()
 
 
+def total_votes() -> int:
+    with _conn() as c:
+        return int(c.execute("SELECT COUNT(*) n FROM votes").fetchone()["n"])
+
+
+def sms_count() -> int:
+    with _conn() as c:
+        return int(c.execute("SELECT COUNT(*) n FROM sms").fetchone()["n"])
+
+
+def recent_feedback(limit: int = 6) -> list[sqlite3.Row]:
+    with _conn() as c:
+        return c.execute(
+            "SELECT phone_hash, english, sentiment, theme FROM feedback "
+            "ORDER BY id DESC LIMIT ?", (limit,),
+        ).fetchall()
+
+
 def latest_project_in(sub_county: str) -> Optional[sqlite3.Row]:
     with _conn() as c:
         return c.execute(

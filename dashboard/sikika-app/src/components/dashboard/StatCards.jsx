@@ -1,10 +1,21 @@
+import { useState, useEffect } from 'react'
 import { useLanguage } from '../../i18n/LanguageContext.jsx'
 
 export default function StatCards() {
   const { t } = useLanguage()
+  const [stats, setStats] = useState(null)
+
+  useEffect(() => {
+    fetch('/api/dashboard-stats')
+      .then((r) => r.json())
+      .then(setStats)
+      .catch(() => {})
+  }, [])
+
+  const num = (n) => (n == null ? '—' : Number(n).toLocaleString())
 
   return (
-    <div className="grid sm:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <div className="bg-white border border-navy-100 rounded-xl p-4">
         <div className="flex items-center justify-between mb-2">
           <span className="w-8 h-8 rounded-lg bg-brand-50 text-brand flex items-center justify-center">
@@ -12,10 +23,9 @@ export default function StatCards() {
               <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
             </svg>
           </span>
-          <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">+12%</span>
         </div>
         <p className="text-[11px] font-semibold text-navy-400 tracking-wide uppercase mb-1">{t('statSmsTotal')}</p>
-        <p className="text-2xl font-extrabold text-navy-700">2,845</p>
+        <p className="text-2xl font-extrabold text-navy-700">{num(stats?.sms_total)}</p>
       </div>
 
       <div className="bg-white border border-navy-100 rounded-xl p-4">
@@ -26,10 +36,9 @@ export default function StatCards() {
               <path d="M21 7v6h-6" />
             </svg>
           </span>
-          <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">+8%</span>
         </div>
         <p className="text-[11px] font-semibold text-navy-400 tracking-wide uppercase mb-1">{t('statParticipation')}</p>
-        <p className="text-2xl font-extrabold text-navy-700">64.2%</p>
+        <p className="text-2xl font-extrabold text-navy-700">{stats == null ? '—' : `${stats.participation_pct}%`}</p>
       </div>
 
       <div className="bg-white border border-navy-100 rounded-xl p-4">
@@ -42,7 +51,7 @@ export default function StatCards() {
           </span>
         </div>
         <p className="text-[11px] font-semibold text-navy-400 tracking-wide uppercase mb-1">{t('statBillsTracked')}</p>
-        <p className="text-2xl font-extrabold text-navy-700">14</p>
+        <p className="text-2xl font-extrabold text-navy-700">{num(stats?.bills_tracked)}</p>
       </div>
     </div>
   )

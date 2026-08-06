@@ -1,53 +1,38 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useLanguage } from '../../i18n/LanguageContext.jsx'
 
-function FeedItem({ initials, initialsBg, initialsColor, nameKey, locKey, msgKey, langLabel, t, isLast }) {
-  return (
-    <div className={isLast ? '' : 'border-b border-navy-50 pb-4'}>
-      <div className="flex items-center justify-between mb-1.5">
-        <div className="flex items-center gap-2">
-          <span
-            className={`w-7 h-7 rounded-full ${initialsBg} ${initialsColor} text-[10px] font-bold flex items-center justify-center`}
-          >
-            {initials}
-          </span>
-          <div>
-            <p className="text-xs font-semibold text-navy-700">{t(nameKey)}</p>
-            <p className="text-[10px] text-navy-300">{t(locKey)}</p>
-          </div>
-        </div>
-        <span className="text-[10px] font-medium text-navy-400 flex items-center gap-1">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M5 8l6 6 6-6" />
-          </svg>
-          {langLabel}
-        </span>
-      </div>
-      <p className="text-xs text-navy-600 leading-relaxed">{t(msgKey)}</p>
-      <div className="flex items-center gap-4 mt-2 text-[11px] font-semibold text-navy-400">
-        <button className="flex items-center gap-1">{t('verify')}</button>
-        <button>{t('translate')}</button>
-        <button className="ml-auto">⋮</button>
-      </div>
-    </div>
-  )
+const AVATARS = ['bg-navy-100 text-navy-700', 'bg-brand-50 text-brand', 'bg-teal-50 text-teal-600']
+
+function sentimentClass(s) {
+  if (s === 'support') return 'text-emerald-600 bg-emerald-50'
+  if (s === 'oppose') return 'text-orange-600 bg-orange-50'
+  return 'text-navy-400 bg-navy-50'
+}
+
+function initialsOf(name) {
+  if (!name) return '??'
+  return name.split(' ').filter(Boolean).map((w) => w[0]).join('').slice(0, 2).toUpperCase()
 }
 
 export default function LiveFeed() {
   const { t } = useLanguage()
   const [query, setQuery] = useState('')
+  const [items, setItems] = useState([])
 
-  const citizens = [
-    { key: 'c1', initials: 'C1', bg: 'bg-navy-100', color: 'text-navy-700', nameKey: 'citizen1', locKey: 'citizen1Loc', msgKey: 'citizen1Msg', lang: 'English' },
-    { key: 'c2', initials: 'C2', bg: 'bg-brand-50', color: 'text-brand', nameKey: 'citizen2', locKey: 'citizen2Loc', msgKey: 'citizen2Msg', lang: 'Swahili' },
-    { key: 'c3', initials: 'C3', bg: 'bg-teal-50', color: 'text-teal-600', nameKey: 'citizen3', locKey: 'citizen3Loc', msgKey: 'citizen3Msg', lang: 'English' },
-  ]
+  useEffect(() => {
+    fetch('/api/dashboard-stats')
+      .then((r) => r.json())
+      .then((d) => setItems(d.feedback || []))
+      .catch(() => {})
+  }, [])
 
   const filtered = useMemo(() => {
-    if (!query.trim()) return citizens
+    if (!query.trim()) return items
     const q = query.toLowerCase()
-    return citizens.filter((c) => t(c.msgKey).toLowerCase().includes(q))
-  }, [query, t])
+    return items.filter(
+      (f) => (f.text || '').toLowerCase().includes(q) || (f.name || '').toLowerCase().includes(q)
+    )
+  }, [query, items])
 
   return (
     <div className="bg-white border border-navy-100 rounded-2xl p-5">
@@ -61,19 +46,33 @@ export default function LiveFeed() {
       <p className="text-xs text-navy-400 mb-4">{t('liveFeedSubtitle')}</p>
 
       <div className="space-y-4">
-        {filtered.map((c, i) => (
-          <FeedItem
-            key={c.key}
-            initials={c.initials}
-            initialsBg={c.bg}
-            initialsColor={c.color}
-            nameKey={c.nameKey}
-            locKey={c.locKey}
-            msgKey={c.msgKey}
-            langLabel={c.lang}
-            t={t}
-            isLast={i === filtered.length - 1}
-          />
+        {filtered.length === 0 && (
+          <p className="text-xs text-navy-300 text-center py-6">
+            {items.length === 0
+              ? 'No feedback yet — it appears here as citizens send it by SMS or USSD.'
+              : 'No matches.'}
+          </p>
+        )}
+        {filtered.map((f, i) => (
+          <div key={i} className={i === filtered.length - 1 ? '' : 'border-b border-navy-50 pb-4'}>
+            <div className="flex items-center justify-between mb-1.5 gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span
+                  className={`shrink-0 w-7 h-7 rounded-full ${AVATARS[i % AVATARS.length]} text-[10px] font-bold flex items-center justify-center`}
+                >
+                  {initialsOf(f.name)}
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-navy-700 truncate">{f.name}</p>
+                  <p className="text-[10px] text-navy-300 truncate">{f.theme}</p>
+                </div>
+              </div>
+              <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${sentimentClass(f.sentiment)}`}>
+                {f.sentiment}
+              </span>
+            </div>
+            <p className="text-xs text-navy-600 leading-relaxed break-words">{f.text}</p>
+          </div>
         ))}
       </div>
 

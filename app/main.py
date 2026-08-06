@@ -151,6 +151,29 @@ def api_stats() -> dict:
     return {"registrations": store.count_registrations()}
 
 
+@app.get("/api/dashboard-stats")
+def api_dashboard_stats() -> dict:
+    """Live figures + latest anonymised feedback for the React dashboard."""
+    votes = store.total_votes()
+    regs = store.count_registrations()
+    return {
+        "sms_total": store.sms_count(),
+        "votes_total": votes,
+        "bills_tracked": len(store.all_projects()),
+        "registrations": regs,
+        "participation_pct": round(min(100.0, votes / regs * 100), 1) if regs else 0.0,
+        "feedback": [
+            {
+                "name": anon_name(r["phone_hash"]),
+                "sentiment": r["sentiment"],
+                "theme": r["theme"],
+                "text": r["english"],
+            }
+            for r in store.recent_feedback(6)
+        ],
+    }
+
+
 # --- Inbound SMS as feedback -------------------------------------------------
 @app.post("/sms")
 def inbound_sms(

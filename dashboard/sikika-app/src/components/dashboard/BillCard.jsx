@@ -5,9 +5,9 @@ export default function BillCard() {
 
   return (
     <div className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
-      <div className="flex flex-col md:flex-row items-stretch min-h-[320px]">
+      <div className="flex flex-col md:flex-row items-stretch md:min-h-[320px]">
         {/* Left Column: Fixed aspect & height scaling */}
-        <div className="md:w-1/2 bg-amber-50 min-h-[220px] relative">
+        <div className="md:w-1/2 bg-amber-50 h-48 md:h-auto md:min-h-[220px] relative">
           <img
             src="/images/bill-produce.jpg"
             alt="Agricultural produce crate"
