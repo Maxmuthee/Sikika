@@ -67,7 +67,7 @@ export default function CTABanner() {
             )}
             {activity && activity.length === 0 && (
               <div className="bg-white/5 rounded-lg px-4 py-3 text-sm text-white/50">
-                System online — awaiting citizen activity.
+                System online - awaiting citizen activity.
               </div>
             )}
             {activity &&

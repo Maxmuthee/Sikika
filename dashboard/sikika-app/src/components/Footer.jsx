@@ -12,7 +12,7 @@ const LEGAL = {
   },
   accessibility: {
     title: 'Accessibility',
-    body: `Sikika is built for basic feature phones over USSD and SMS — no smartphone, internet, or English literacy required. Content is offered in Kiswahili, Gikuyu, and English.\n\nThis web dashboard aims to meet WCAG 2.1 AA. If you encounter a barrier, contact info@sikika.go.ke.`,
+    body: `Sikika is built for basic feature phones over USSD and SMS. No smartphone, internet or English literacy required. Content is offered in Kiswahili, Gikuyu, and English.\n\nThis web dashboard aims to meet WCAG 2.1 AA. If you encounter a barrier, contact info@sikika.go.ke.`,
   },
 }
 

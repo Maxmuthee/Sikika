@@ -53,17 +53,12 @@ export default function Hero() {
       </div>
 
       <div className="relative">
-        {/* Replace src with your own hero photo, e.g. /images/hero-village.jpg */}
         <div className="rounded-2xl overflow-hidden shadow-xl aspect-[4/3] bg-navy-50">
           <img
             src="/images/hero-village.jpg"
             alt="Community gathering in rural Nakuru County"
             className="w-full h-full object-cover"
           />
-        </div>
-        <div className="absolute -bottom-5 -right-3 bg-white rounded-full shadow-lg w-16 h-16 flex flex-col items-center justify-center border border-navy-100">
-          <span className="text-[10px] font-extrabold text-navy-700 leading-none">KE</span>
-          <span className="text-[7px] font-semibold text-navy-400 leading-none mt-0.5">OFFICIAL</span>
         </div>
       </div>
     </section>

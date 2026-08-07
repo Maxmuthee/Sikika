@@ -145,7 +145,7 @@ const translations = {
     navDashboard: 'Dashibodi ya Uwazi',
     signIn: 'Ingia',
 
-    badgeInitiative: '🇰🇪 Mpango wa Kaunti ya Nakuru',
+    badgeInitiative: 'Mpango wa Kaunti ya Nakuru',
     heroTitle1: 'Kudemokrasisha Sauti ya Kiraia kwa',
     heroTitle2: 'Kenya Isiyo Mtandaoni',
     heroBody:
