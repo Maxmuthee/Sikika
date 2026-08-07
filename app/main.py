@@ -12,11 +12,12 @@ Run:  uvicorn app.main:app --reload
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from fastapi import FastAPI, Form
 from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
+from fastapi.staticfiles import StaticFiles
 
 from ai import aggregate_feedback, answer_sms, translate_feedback
 from ai.core import FeedbackAnalysis
@@ -39,6 +40,9 @@ def _startup() -> None:
 
 
 _STATIC = Path(__file__).resolve().parent / "static"
+# The single dashboard is the React app (dashboard/sikika-app). In production we
+# serve its built output; in dev the app runs on Vite (port 5173) and proxies /api here.
+_DIST = Path(__file__).resolve().parents[1] / "dashboard" / "sikika-app" / "dist"
 
 
 @app.get("/health")
@@ -47,9 +51,9 @@ def health() -> dict:
 
 
 @app.get("/")
-def dashboard() -> FileResponse:
-    """County-official participation dashboard (static, self-contained)."""
-    return FileResponse(_STATIC / "dashboard.html")
+def home() -> FileResponse:
+    """Serve the React single-page app (landing + county dashboard)."""
+    return FileResponse(_DIST / "index.html")
 
 
 @app.get("/simulator")
@@ -151,6 +155,13 @@ def api_stats() -> dict:
     return {"registrations": store.count_registrations()}
 
 
+@app.get("/api/subcounties")
+def api_subcounties() -> dict:
+    """All Nakuru County sub-counties (canonical list) for dashboard filters."""
+    from .wards import WARDS_BY_SUBCOUNTY
+    return {"subcounties": list(WARDS_BY_SUBCOUNTY)}
+
+
 def _ago(ts) -> str:
     """Human 'x ago' from a stored UTC timestamp (SQLite text or PG datetime)."""
     if not ts:
@@ -183,6 +194,67 @@ def api_activity() -> dict:
     }
 
 
+def _to_date(ts):
+    """Date part of a stored UTC timestamp (SQLite text or PG datetime)."""
+    if not ts:
+        return None
+    if isinstance(ts, str):
+        try:
+            return datetime.strptime(ts[:10], "%Y-%m-%d").date()
+        except ValueError:
+            return None
+    return ts.date() if hasattr(ts, "date") else None
+
+
+def _engagement(days: int = 7) -> list[dict]:
+    """Real daily citizen-activity counts for the last `days` days."""
+    today = datetime.now(timezone.utc).date()
+    buckets = {today - timedelta(days=i): 0 for i in range(days)}
+    for ts in store.activity_timestamps():
+        d = _to_date(ts)
+        if d in buckets:
+            buckets[d] += 1
+    return [
+        {"label": d.strftime("%a"), "value": buckets[d]}
+        for d in sorted(buckets)  # oldest -> newest
+    ]
+
+
+# Fixed civic pipeline; the *current* stage is derived from a bill's real status.
+_STATUS_STAGE = {"Proposed": 1, "Bill": 2, "Ongoing": 4}
+
+
+def _featured_bill() -> dict | None:
+    """The most-engaged bill (votes + feedback), with live tallies and AI brief."""
+    projects = store.all_projects()
+    if not projects:
+        return None
+
+    def engagement(p) -> int:
+        t = store.vote_tally(p["id"])
+        return t["support"] + t["oppose"] + len(store.list_feedback(p["id"]))
+
+    p = max(projects, key=engagement)
+    tally = store.vote_tally(p["id"])
+    total = tally["support"] + tally["oppose"]
+    fb = len(store.list_feedback(p["id"]))
+    tr = store.get_translation(p["id"], "en")
+    insight = ((tr["data_summary"] or tr["civic_education"]) if tr else "") or ""
+    return {
+        "id": p["id"],
+        "title": (tr["project_name"] if tr and tr["project_name"] else p["name_en"]),
+        "ward": p["ward"],
+        "status": p["status"],
+        "support_pct": round(tally["support"] / total * 100) if total else 0,
+        "oppose_pct": round(tally["oppose"] / total * 100) if total else 0,
+        "votes_total": total,
+        "participants": total + fb,
+        "ai_insight": insight[:240],
+        # Which pipeline stage is live, so the timeline reflects the real bill.
+        "stage": _STATUS_STAGE.get(p["status"], 1),
+    }
+
+
 @app.get("/api/dashboard-stats")
 def api_dashboard_stats() -> dict:
     """Live figures + latest anonymised feedback for the React dashboard."""
@@ -194,6 +266,8 @@ def api_dashboard_stats() -> dict:
         "bills_tracked": len(store.all_projects()),
         "registrations": regs,
         "participation_pct": round(min(100.0, votes / regs * 100), 1) if regs else 0.0,
+        "featured": _featured_bill(),
+        "engagement": _engagement(7),
         "feedback": [
             {
                 "name": anon_name(r["phone_hash"]),
@@ -346,3 +420,21 @@ def _projects_context() -> str:
         else:
             lines.append(f"- #{p['id']} {p['name_en']} ({p['ward']})")
     return "\n".join(lines)
+
+
+# --- Serve the built React SPA (must stay LAST so it can't shadow API routes) -
+if (_DIST / "assets").is_dir():
+    app.mount("/assets", StaticFiles(directory=_DIST / "assets"), name="assets")
+
+
+@app.get("/{full_path:path}", include_in_schema=False)
+def spa_fallback(full_path: str) -> FileResponse:
+    """Serve real dist files (images, favicon) or fall back to the SPA shell.
+
+    Registered last, GET-only, so it never intercepts the API or POST webhooks;
+    client-side routes like /dashboard resolve to index.html and let React route.
+    """
+    candidate = (_DIST / full_path).resolve()
+    if candidate.is_file() and _DIST.resolve() in candidate.parents:
+        return FileResponse(candidate)
+    return FileResponse(_DIST / "index.html")

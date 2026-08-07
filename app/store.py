@@ -397,6 +397,19 @@ def recent_activity(limit: int = 5) -> list[sqlite3.Row]:
         ).fetchall()
 
 
+def activity_timestamps() -> list:
+    """Every citizen-event timestamp (votes, feedback, registrations) for trend charts."""
+    with _conn() as c:
+        rows = c.execute(
+            "SELECT at FROM ("
+            "  SELECT created_at AS at FROM votes "
+            "  UNION ALL SELECT created_at AS at FROM feedback "
+            "  UNION ALL SELECT created_at AS at FROM registrations "
+            ")"
+        ).fetchall()
+    return [r["at"] for r in rows]
+
+
 def latest_project_in(sub_county: str) -> Optional[sqlite3.Row]:
     with _conn() as c:
         return c.execute(
