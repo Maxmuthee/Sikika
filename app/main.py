@@ -12,7 +12,7 @@ Run:  uvicorn app.main:app --reload
 from __future__ import annotations
 
 import logging
-
+from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import FastAPI, Form
@@ -149,6 +149,38 @@ def admin_notify(project_id: int) -> dict:
 @app.get("/api/stats")
 def api_stats() -> dict:
     return {"registrations": store.count_registrations()}
+
+
+def _ago(ts) -> str:
+    """Human 'x ago' from a stored UTC timestamp (SQLite text or PG datetime)."""
+    if not ts:
+        return ""
+    if isinstance(ts, str):
+        try:
+            dt = datetime.strptime(ts[:19], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+        except ValueError:
+            return ""
+    else:
+        dt = ts if getattr(ts, "tzinfo", None) else ts.replace(tzinfo=timezone.utc)
+    secs = (datetime.now(timezone.utc) - dt).total_seconds()
+    if secs < 60:
+        return "just now"
+    if secs < 3600:
+        return f"{int(secs // 60)}m ago"
+    if secs < 86400:
+        return f"{int(secs // 3600)}h ago"
+    return f"{int(secs // 86400)}d ago"
+
+
+@app.get("/api/activity")
+def api_activity() -> dict:
+    """Live recent citizen activity for the landing-page status panel."""
+    return {
+        "activity": [
+            {"kind": r["kind"], "area": r["area"], "ago": _ago(r["at"])}
+            for r in store.recent_activity(4)
+        ]
+    }
 
 
 @app.get("/api/dashboard-stats")

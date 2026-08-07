@@ -382,6 +382,21 @@ def recent_feedback(limit: int = 6) -> list[sqlite3.Row]:
         ).fetchall()
 
 
+def recent_activity(limit: int = 5) -> list[sqlite3.Row]:
+    """Newest citizen events across registrations, votes and feedback."""
+    with _conn() as c:
+        return c.execute(
+            "SELECT kind, area, at FROM ("
+            "  SELECT 'feedback' AS kind, r.sub_county AS area, f.created_at AS at "
+            "    FROM feedback f LEFT JOIN registrations r ON r.phone_hash = f.phone_hash "
+            "  UNION ALL "
+            "  SELECT 'registration' AS kind, sub_county AS area, created_at AS at FROM registrations "
+            "  UNION ALL "
+            "  SELECT 'vote' AS kind, CAST(NULL AS TEXT) AS area, created_at AS at FROM votes "
+            ") ORDER BY at DESC LIMIT ?", (limit,),
+        ).fetchall()
+
+
 def latest_project_in(sub_county: str) -> Optional[sqlite3.Row]:
     with _conn() as c:
         return c.execute(
