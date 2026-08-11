@@ -15,7 +15,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from fastapi import FastAPI, Form
+from fastapi import FastAPI, Form, Request
 from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -281,32 +281,83 @@ def api_dashboard_stats() -> dict:
 
 
 # --- Inbound SMS as feedback -------------------------------------------------
+# Shared Africa's Talking gateway (shortcode 20880). Messages that reach us are
+# prefixed with the gateway keyword and our project tag, e.g. "kamilimu sikika
+# <the citizen's actual message>". We strip that prefix before processing.
+SMS_KEYWORD = "kamilimu"
+SMS_PROJECT_TAG = "sikika"
+
+
+def _strip_keyword(text: str) -> str:
+    """Remove a leading 'kamilimu' (+ optional 'sikika') routing prefix."""
+    t = (text or "").strip()
+    for tag in (SMS_KEYWORD, SMS_PROJECT_TAG):
+        if t.lower().startswith(tag):
+            t = t[len(tag):].strip()
+    return t
+
+
+def _process_inbound(sender: str, body: str) -> str:
+    """Core two-way SMS pipeline: store, answer via AI/commands, reply, store.
+
+    Default: the message is a QUESTION -> the AI answers, grounded in the current
+    projects/bills, in the citizen's language, with conversation memory.
+    Commands: MAONI <text> (submit feedback), MSAADA/HELP (help).
+    """
+    body = (body or "").strip()
+    phone_hash = hash_phone(sender)
+    reg = store.get_registration(phone_hash)
+    lang_hint = reg["lang"] if reg else None
+
+    # History BEFORE storing the current inbound message.
+    history = store.sms_history_for_ai(phone_hash)
+    store.add_sms(phone_hash, sender, "in", body)
+
+    reply = _handle_sms(body, phone_hash, sender, reg, lang_hint, history)
+    reply = reply[:480]  # keep to a few SMS segments
+    store.add_sms(phone_hash, sender, "out", reply)
+    send_sms(sender, reply)
+    return reply
+
+
 @app.post("/sms")
 def inbound_sms(
     from_: str = Form(..., alias="from"),
     text: str = Form(...),
     to: str = Form(default=""),
 ) -> dict:
-    """A two-way SMS assistant for offline citizens.
+    """Direct Africa's Talking inbound-SMS callback (dedicated shortcode / sandbox)."""
+    return {"reply": _process_inbound(from_, _strip_keyword(text))}
 
-    Default: the message is a QUESTION -> Claude answers, grounded in the
-    current projects/bills, in the citizen's language, with conversation memory.
-    Commands: SIKIZA <id> (listen by voice), MAONI <text> (submit feedback),
-    MSAADA/HELP (help).
+
+@app.post("/sms/kamilimu")
+async def inbound_sms_kamilimu(request: Request) -> dict:
+    """Production callback for the SHARED KamiLimu gateway (shortcode 20880).
+
+    Tolerant of payload shape: accepts form-encoded (Africa's Talking default) or
+    JSON, and pulls the sender/text from the common field names. The full raw
+    payload is logged so the exact gateway format is visible during live testing.
+    Register this URL with the gateway operator:  https://<host>/sms/kamilimu
     """
-    body = text.strip()
-    phone_hash = hash_phone(from_)
-    reg = store.get_registration(phone_hash)
-    lang_hint = reg["lang"] if reg else None
+    ctype = request.headers.get("content-type", "")
+    if "application/json" in ctype:
+        data = dict(await request.json())
+    else:
+        data = dict(await request.form())
+    log.info("KamiLimu inbound payload: %s", data)
 
-    # History BEFORE storing the current inbound message.
-    history = store.sms_history_for_ai(phone_hash)
-    store.add_sms(phone_hash, from_, "in", body)
+    sender = str(
+        data.get("from") or data.get("msisdn") or data.get("phoneNumber")
+        or data.get("sender") or ""
+    ).strip()
+    raw = str(
+        data.get("text") or data.get("message") or data.get("content") or ""
+    ).strip()
+    if not sender or not raw:
+        return {"error": "missing sender or text", "received": data}
 
-    reply = _handle_sms(body, phone_hash, from_, reg, lang_hint, history)
-    reply = reply[:480]  # keep to a few SMS segments
-    store.add_sms(phone_hash, from_, "out", reply)
-    send_sms(from_, reply)
+    reply = _process_inbound(sender, _strip_keyword(raw))
+    # Return the reply too, in case the gateway relays HTTP responses back to the sender.
     return {"reply": reply}
 
 

@@ -40,9 +40,15 @@ if IS_PG:
     def _configure(conn):
         conn.autocommit = True  # avoid a separate COMMIT round-trip per query
 
+    # check: validate (and transparently reconnect) each connection on checkout —
+    # Neon closes idle connections, so a pooled one can be dead between requests
+    # ("SSL connection has been closed unexpectedly"). max_lifetime recycles
+    # connections proactively before Neon drops them.
     _pool = ConnectionPool(
         DATABASE_URL, min_size=1, max_size=5, open=False, configure=_configure,
         kwargs={"row_factory": dict_row, "prepare_threshold": None},
+        check=ConnectionPool.check_connection,
+        max_lifetime=300,
     )
     _pool.open()
 
