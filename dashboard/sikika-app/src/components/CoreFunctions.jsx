@@ -55,7 +55,6 @@ export default function CoreFunctions() {
             <p className="text-sm text-navy-400 mb-4">{t(c.bodyKey)}</p>
             <div className="flex items-center justify-between border-t border-navy-100 pt-4 text-xs">
               <span className="font-semibold text-brand">{t(c.tagKey)}</span>
-              <span className="font-semibold text-navy-400">{t('learnMore')}</span>
             </div>
           </div>
         ))}
