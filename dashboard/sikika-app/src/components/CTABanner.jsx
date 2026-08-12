@@ -98,7 +98,7 @@ export default function CTABanner() {
               </button>
             </div>
             <p className="text-sm text-navy-500 leading-relaxed">
-              Sikika works on any phone — no smartphone or internet needed. To take part:
+              Sikika works on any phone - no smartphone or internet needed. To take part:
             </p>
             <ul className="mt-3 space-y-2 text-sm text-navy-600">
               <li className="flex gap-2">

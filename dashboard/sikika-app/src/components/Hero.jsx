@@ -31,9 +31,6 @@ export default function Hero() {
               <path d="M5 12h14M13 6l6 6-6 6" />
             </svg>
           </Link>
-          <button className="inline-flex items-center gap-2 border border-navy-100 hover:bg-navy-50 text-navy-700 font-semibold px-5 py-3 rounded-lg transition">
-            {t('heroCtaSecondary')}
-          </button>
         </div>
 
         <div className="flex gap-8">

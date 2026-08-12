@@ -8,16 +8,13 @@ export default function SubmitCTA() {
       <h3 className="font-bold text-lg mb-1.5">{t('submitTitle')}</h3>
       <p className="text-sm text-white/90 mb-4">
         {t('submitBody')
-          .split('8800')
+          .split('20880')
           .reduce((acc, part, i, arr) => {
             acc.push(part)
-            if (i < arr.length - 1) acc.push(<strong key={i}>8800</strong>)
+            if (i < arr.length - 1) acc.push(<strong key={i}>20880</strong>)
             return acc
           }, [])}
       </p>
-      <button className="w-full bg-white text-brand-700 font-semibold text-sm py-2.5 rounded-lg">
-        {t('submitButton')}
-      </button>
     </div>
   )
 }

@@ -2,7 +2,6 @@ const translations = {
   en: {
     navHome: 'Home',
     navDashboard: 'Transparency Dashboard',
-    signIn: 'Sign In',
 
     badgeInitiative: 'Nakuru County Initiative',
     heroTitle1: 'Democratizing Civic Voice for',
@@ -10,7 +9,6 @@ const translations = {
     heroBody:
       "SIKIKA bridges the gap between rural communities and Nakuru County governance. Track local bills, submit SMS feedback, and ensure your community's needs are heard without needing a smartphone or internet connection.",
     heroCtaPrimary: 'Transparency Dashboard',
-    heroCtaSecondary: 'How it Works',
     statCitizens: 'Active Citizens',
     statBills: 'Active Bills',
     statSms: 'SMS Delivery',
@@ -24,10 +22,10 @@ const translations = {
       "Traditional digital portals often ignore those without high-speed internet or the latest smartphones. SIKIKA uses simple technology to ensure the backbone of Nakuru's rural economy has a seat at the table.",
     featAccessTitle: 'Accessibility First',
     featAccessBody:
-      'Interface designed for low-vision users with clear high-contrast type and intuitive navigation.',
+      'Interface designed to work on both feature phones and smartphones with simple, intuitive navigation.',
     featSmsTitle: 'SMS Connectivity',
     featSmsBody:
-      'Participate in debates and vote on local resolutions via standard USSD and SMS text messages.',
+      'Contribute your opinions and vote on local resolutions via standard USSD and SMS text messages.',
     featLangTitle: 'Local Languages',
     featLangBody:
       'Full support for Swahili and Kikuyu to ensure understanding and comfortable engagement.',
@@ -70,7 +68,7 @@ const translations = {
     dashPortalTag: 'Nakuru County Portal',
     dashTitle: 'Civic Transparency Dashboard',
     dashSubtitle:
-      'Real-time monitoring of legislative progress and citizen feedback for Nakuru County. Ensuring every voice in Molo and beyond is heard.',
+      'Real-time monitoring of legislative progress and citizen feedback for Nakuru County. Ensuring every voice in Nakuru is heard.',
     filterSector: 'Agriculture & Livestock',
     filterLocation: 'Molo Sub-County',
     allSubCounties: 'All Sub-Counties',
@@ -94,13 +92,13 @@ const translations = {
     statBillsTracked: 'Bills Tracked',
 
     chartTitle: 'Weekly Engagement Volume',
-    chartSubtitle: 'SMS feedback trends for Agriculture Sector (Molo)',
+    chartSubtitle: 'SMS feedback trends for Agriculture Sector',
     chartRange: '📅 Last 7 Days',
     days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
 
     billStatusTitle: '⏱ Bill Status',
     stageFirstReading: 'First Reading',
-    stagePublicParticipation: 'Public Participation – Molo',
+    stagePublicParticipation: 'Public Participation',
     stageCommitteeReview: 'Committee Review',
     stageCurrentPhase: 'Current Phase',
     stageSecondReading: 'Second Reading',
@@ -126,8 +124,7 @@ const translations = {
     searchPlaceholder: 'Search feedback...',
 
     submitTitle: 'Submit Your View',
-    submitBody: 'SMS your feedback on the 2026 Bill to 8800. Free of charge.',
-    submitButton: 'See Submission Guide',
+    submitBody: 'SMS your feedback on the bill to 20880.',
 
     footerBody:
       'Bridging the gap between rural communities in Nakuru and local government processes. Empowering citizens through transparency and digital engagement.',
@@ -151,7 +148,6 @@ const translations = {
     heroBody:
       "SIKIKA inaziba pengo kati ya jamii za vijijini na uongozi wa Kaunti ya Nakuru. Fuatilia miswada ya eneo lako, tuma maoni kwa SMS, na hakikisha mahitaji ya jamii yako yanasikika bila kuhitaji simu janja au mtandao.",
     heroCtaPrimary: 'Dashibodi ya Uwazi',
-    heroCtaSecondary: 'Jinsi Inavyofanya Kazi',
     statCitizens: 'Wananchi Amilifu',
     statBills: 'Miswada Amilifu',
     statSms: 'Uwasilishaji wa SMS',
@@ -165,10 +161,10 @@ const translations = {
       "Mifumo ya kawaida ya kidijitali mara nyingi hupuuza wale wasio na mtandao wa kasi au simu janja za kisasa. SIKIKA hutumia teknolojia rahisi kuhakikisha uti wa mgongo wa uchumi wa vijijini wa Nakuru unapata nafasi mezani.",
     featAccessTitle: 'Ufikivu Kwanza',
     featAccessBody:
-      'Muundo ulioundwa kwa watumiaji wenye uoni hafifu, wenye maandishi wazi na uelekezaji rahisi.',
+      'Muundo wa kufanya kazi kwenye simu za vipengele kenye maandishi wazi na uelekezaji rahisi.',
     featSmsTitle: 'Muunganisho wa SMS',
     featSmsBody:
-      'Shiriki mijadala na piga kura kwa maazimio ya eneo lako kupitia USSD na SMS za kawaida.',
+      'Toa mawazo yako na upige kura kwa maazimio ya eneo lako kupitia USSD na SMS za kawaida.',
     featLangTitle: 'Lugha za Kienyeji',
     featLangBody:
       'Uungwaji mkono kamili wa Kiswahili na Kiingereza kuhakikisha uelewa na ushiriki mzuri.',
@@ -211,7 +207,7 @@ const translations = {
     dashPortalTag: 'Lango la Kaunti ya Nakuru',
     dashTitle: 'Dashibodi ya Uwazi wa Kiraia',
     dashSubtitle:
-      'Ufuatiliaji wa wakati halisi wa maendeleo ya kisheria na maoni ya wananchi kwa Kaunti ya Nakuru. Kuhakikisha kila sauti Molo na kwingineko inasikika.',
+      'Ufuatiliaji wa wakati halisi wa maendeleo ya kisheria na maoni ya wananchi kwa Kaunti ya Nakuru. Kuhakikisha kila sauti Nakuru inasikika.',
     filterSector: 'Kilimo na Mifugo',
     filterLocation: 'Kaunti Ndogo ya Molo',
     allSubCounties: 'Kaunti Ndogo Zote',
@@ -235,13 +231,13 @@ const translations = {
     statBillsTracked: 'Miswada Inayofuatiliwa',
 
     chartTitle: 'Kiasi cha Ushiriki wa Wiki',
-    chartSubtitle: 'Mienendo ya maoni ya SMS kwa Sekta ya Kilimo (Molo)',
+    chartSubtitle: 'Mienendo ya maoni ya SMS kwa Sekta ya Kilimo',
     chartRange: '📅 Siku 7 Zilizopita',
     days: ['Jtt', 'Jnn', 'Jtn', 'Alh', 'Ijm', 'Jmo', 'Jpi'],
 
     billStatusTitle: '⏱ Hali ya Mswada',
     stageFirstReading: 'Usomaji wa Kwanza',
-    stagePublicParticipation: 'Ushiriki wa Umma – Molo',
+    stagePublicParticipation: 'Ushiriki wa Umma',
     stageCommitteeReview: 'Ukaguzi wa Kamati',
     stageCurrentPhase: 'Awamu ya Sasa',
     stageSecondReading: 'Usomaji wa Pili',
@@ -253,7 +249,7 @@ const translations = {
     citizen1: 'Mwananchi 1',
     citizen1Loc: 'Molo · saa 2 zilizopita',
     citizen1Msg:
-      'Viwango vipya vya ushuru wa mazao Molo ni juu zaidi kuliko mwaka jana. Tunahitaji ufafanuzi wa jinsi hii inavyowasaidia wakulima wadogo.',
+      'Viwango vipya vya ushuru wa mazao ni juu zaidi kuliko mwaka jana. Tunahitaji ufafanuzi wa jinsi hii inavyowasaidia wakulima wadogo.',
     citizen2: 'Mwananchi 2',
     citizen2Loc: 'Molo · saa 5 zilizopita',
     citizen2Msg:
@@ -267,8 +263,7 @@ const translations = {
     searchPlaceholder: 'Tafuta maoni...',
 
     submitTitle: 'Wasilisha Maoni Yako',
-    submitBody: 'Tuma maoni yako kuhusu Mswada wa 2026 kwa SMS hadi 8800. Bila malipo.',
-    submitButton: 'Ona Mwongozo wa Uwasilishaji',
+    submitBody: 'Tuma maoni yako kuhusu Mswada kwa SMS hadi 20880.',
 
     footerBody:
       'Kuziba pengo kati ya jamii za vijijini Nakuru na taratibu za serikali za mitaa. Kuwawezesha wananchi kupitia uwazi na ushiriki wa kidijitali.',
