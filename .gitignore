@@ -16,4 +16,9 @@ venv/
 .DS_Store
 Thumbs.db
 
+#node modules
 **/node_modules/
+
+#dist & build folders
+dashboard/sikika-app/dist/
+app/static/
