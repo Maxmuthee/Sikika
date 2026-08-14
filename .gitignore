@@ -19,6 +19,6 @@ Thumbs.db
 #node modules
 **/node_modules/
 
-#dist & build folders
-dashboard/sikika-app/dist/
-app/static/
+# Build output is VERSION-CONTROLLED on purpose: the VPS deploys by pulling the
+# repo, so `dashboard/sikika-app/dist/` must be committed. ALWAYS rebuild before
+# committing UI changes: cd dashboard/sikika-app && npm run build
