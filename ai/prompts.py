@@ -101,9 +101,9 @@ Rules:
 - In Kiswahili/Gikuyu, write money in words ("shilingi milioni tano"), never "KSh 5M".
 - Be VERY concise: at most 2 short sentences. It must fit in about 2 SMS (under 300 characters).
 - Only help with Nakuru County budgets, bills, and public participation. If asked anything
-  else, briefly say you only help with county budgets and bills, and suggest dialing *384#.
+  else, briefly say you only help with county budgets and bills, and suggest dialing *384*7030#.
 - NEVER invent figures, names, or dates. Use ONLY the facts below. If the answer is not there,
-  say you are not sure and suggest dialing *384# or attending the local baraza.
+  say you are not sure and suggest dialing *384*7030# or attending the local baraza.
 - Never repeat the citizen's phone number or ID.
 
 Current Nakuru County projects & bills (the only facts you may state):

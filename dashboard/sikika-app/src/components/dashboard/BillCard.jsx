@@ -1,16 +1,7 @@
-import { useState, useEffect } from 'react'
 import { useLanguage } from '../../i18n/LanguageContext.jsx'
 
-export default function BillCard() {
+export default function BillCard({ bill }) {
   const { t } = useLanguage()
-  const [bill, setBill] = useState(undefined) // undefined = loading, null = none
-
-  useEffect(() => {
-    fetch('/api/dashboard-stats')
-      .then((r) => r.json())
-      .then((d) => setBill(d.featured || null))
-      .catch(() => setBill(null))
-  }, [])
 
   return (
     <div className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
@@ -79,9 +70,6 @@ export default function BillCard() {
                   </svg>
                   {bill.participants} {t('citizensEngaged')}
                 </span>
-                <button className="flex items-center gap-1.5 bg-[#EA580C] hover:bg-orange-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition">
-                  {t('readFullText')}
-                </button>
               </div>
             </>
           )}

@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLanguage } from '../../i18n/LanguageContext.jsx'
 
-export default function DashboardHero() {
+export default function DashboardHero({ selected, onSelect }) {
   const { t } = useLanguage()
   const [subs, setSubs] = useState([])
-  const [selected, setSelected] = useState(null) // null = All Sub-Counties
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
@@ -73,7 +72,7 @@ export default function DashboardHero() {
                     <button
                       key={s ?? 'all'}
                       onClick={() => {
-                        setSelected(s)
+                        onSelect(s)
                         setOpen(false)
                       }}
                       className={`w-full flex items-center justify-between text-left px-4 py-3 text-[15px] transition ${

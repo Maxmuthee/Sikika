@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useLanguage } from '../../i18n/LanguageContext.jsx'
 
 const AVATARS = ['bg-navy-100 text-navy-700', 'bg-brand-50 text-brand', 'bg-teal-50 text-teal-600']
@@ -14,17 +14,10 @@ function initialsOf(name) {
   return name.split(' ').filter(Boolean).map((w) => w[0]).join('').slice(0, 2).toUpperCase()
 }
 
-export default function LiveFeed() {
+export default function LiveFeed({ feedback }) {
   const { t } = useLanguage()
   const [query, setQuery] = useState('')
-  const [items, setItems] = useState([])
-
-  useEffect(() => {
-    fetch('/api/dashboard-stats')
-      .then((r) => r.json())
-      .then((d) => setItems(d.feedback || []))
-      .catch(() => {})
-  }, [])
+  const items = feedback || []
 
   const filtered = useMemo(() => {
     if (!query.trim()) return items

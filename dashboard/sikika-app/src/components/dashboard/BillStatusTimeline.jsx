@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react'
 import { useLanguage } from '../../i18n/LanguageContext.jsx'
 
 const STAGE_KEYS = [
@@ -9,16 +8,8 @@ const STAGE_KEYS = [
   'stageGovernorsAssent',
 ]
 
-export default function BillStatusTimeline() {
+export default function BillStatusTimeline({ bill }) {
   const { t } = useLanguage()
-  const [bill, setBill] = useState(null)
-
-  useEffect(() => {
-    fetch('/api/dashboard-stats')
-      .then((r) => r.json())
-      .then((d) => setBill(d.featured || null))
-      .catch(() => {})
-  }, [])
 
   const current = bill ? bill.stage : -1
 

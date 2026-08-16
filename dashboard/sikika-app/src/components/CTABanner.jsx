@@ -103,7 +103,7 @@ export default function CTABanner() {
             <ul className="mt-3 space-y-2 text-sm text-navy-600">
               <li className="flex gap-2">
                 <span className="font-bold text-brand">1.</span>
-                Dial <b className="text-navy-700">*384#</b> to register and browse bills in your language.
+                Dial <b className="text-navy-700">*384*7030#</b> to register and browse bills in your language.
               </li>
               <li className="flex gap-2">
                 <span className="font-bold text-brand">2.</span>

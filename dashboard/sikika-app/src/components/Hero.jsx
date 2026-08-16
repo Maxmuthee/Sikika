@@ -1,9 +1,20 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useLanguage } from '../i18n/LanguageContext.jsx'
 import LanguageToggle from './LanguageToggle.jsx'
 
 export default function Hero() {
   const { t } = useLanguage()
+  const [stats, setStats] = useState(null)
+
+  useEffect(() => {
+    fetch('/api/dashboard-stats')
+      .then((r) => r.json())
+      .then(setStats)
+      .catch(() => {})
+  }, [])
+
+  const num = (n) => (n == null ? '…' : Number(n).toLocaleString())
 
   return (
     <section id="home" className="max-w-7xl mx-auto px-5 sm:px-8 pt-14 pb-16 grid lg:grid-cols-2 gap-12 items-center">
@@ -35,15 +46,15 @@ export default function Hero() {
 
         <div className="flex gap-8">
           <div>
-            <p className="text-2xl font-extrabold text-navy-700">12.4k+</p>
+            <p className="text-2xl font-extrabold text-navy-700">{num(stats?.registrations)}</p>
             <p className="text-xs text-navy-400 font-medium">{t('statCitizens')}</p>
           </div>
           <div className="border-l border-navy-100 pl-8">
-            <p className="text-2xl font-extrabold text-navy-700">45</p>
+            <p className="text-2xl font-extrabold text-navy-700">{num(stats?.bills_tracked)}</p>
             <p className="text-xs text-navy-400 font-medium">{t('statBills')}</p>
           </div>
           <div className="border-l border-navy-100 pl-8">
-            <p className="text-2xl font-extrabold text-navy-700">98%</p>
+            <p className="text-2xl font-extrabold text-navy-700">{num(stats?.sms_total)}</p>
             <p className="text-xs text-navy-400 font-medium">{t('statSms')}</p>
           </div>
         </div>

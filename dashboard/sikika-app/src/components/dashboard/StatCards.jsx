@@ -1,16 +1,7 @@
-import { useState, useEffect } from 'react'
 import { useLanguage } from '../../i18n/LanguageContext.jsx'
 
-export default function StatCards() {
+export default function StatCards({ stats }) {
   const { t } = useLanguage()
-  const [stats, setStats] = useState(null)
-
-  useEffect(() => {
-    fetch('/api/dashboard-stats')
-      .then((r) => r.json())
-      .then(setStats)
-      .catch(() => {})
-  }, [])
 
   const num = (n) => (n == null ? '—' : Number(n).toLocaleString())
 

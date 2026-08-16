@@ -80,7 +80,7 @@
   </div>
 
   <div class="phone">
-    <div class="brand">SIKIKA · *384#</div>
+    <div class="brand">SIKIKA · *384*7030#</div>
     <div class="tabs">
       <button class="tab active" id="tab-ussd">&#9742; USSD</button>
       <button class="tab" id="tab-sms">&#9993; Messages</button>
@@ -88,7 +88,7 @@
 
     <!-- USSD app -->
     <div id="ussdApp">
-      <div id="screen" class="screen idle">Type *384# then press Dial.
+      <div id="screen" class="screen idle">Type *384*7030# then press Dial.
 In a session: 0 = back, 00 = main, 99 = more.</div>
       <div class="inputline"><span id="input"></span><span class="cursor">&#9612;</span></div>
       <div class="keys">
@@ -138,7 +138,7 @@ In a session: 0 = back, 00 = main, 99 = more.</div>
 
     // ================= USSD =================
     let active = false, history = [], input = '';
-    const SERVICE_CODE = '*384#';
+    const SERVICE_CODE = '*384*7030#';
     const setInput = () => { $('input').textContent = input; };
     function showScreen(text, idle = false) {
       const s = $('screen'); s.classList.toggle('idle', idle); s.textContent = text;
@@ -171,7 +171,7 @@ In a session: 0 = back, 00 = main, 99 = more.</div>
     $('end').addEventListener('click', () => {
       if (input) { input = ''; setInput(); return; }
       active = false; history = []; $('call').textContent = 'Dial';
-      showScreen('Type *384# then press Dial.\nIn a session: 0 = back, 00 = main, 99 = more.', true);
+      showScreen('Type *384*7030# then press Dial.\nIn a session: 0 = back, 00 = main, 99 = more.', true);
       setStatus('');
     });
     document.addEventListener('keydown', (e) => {

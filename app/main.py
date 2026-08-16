@@ -109,7 +109,7 @@ def bill_page(project_id: int) -> str:
  {src_btn}
  <details><summary>Official source text</summary><p class="src">{esc(p['raw_text'])}</p></details>
 </div>
-<footer>Sikika &middot; dial *384# on any phone &middot; <a href="/">county dashboard</a></footer>
+<footer>Sikika &middot; dial *384*7030# on any phone &middot; <a href="/">county dashboard</a></footer>
 </body></html>"""
 
 
@@ -224,9 +224,10 @@ def _engagement(days: int = 7) -> list[dict]:
 _STATUS_STAGE = {"Proposed": 1, "Bill": 2, "Ongoing": 4}
 
 
-def _featured_bill() -> dict | None:
-    """The most-engaged bill (votes + feedback), with live tallies and AI brief."""
-    projects = store.all_projects()
+def _featured_bill(ward: str | None = None) -> dict | None:
+    """The most-engaged bill (votes + feedback) for a sub-county (or county-wide
+    when `ward` is None), with live tallies and AI brief."""
+    projects = [p for p in store.all_projects() if ward is None or p["ward"] == ward]
     if not projects:
         return None
 
@@ -256,17 +257,36 @@ def _featured_bill() -> dict | None:
 
 
 @app.get("/api/dashboard-stats")
-def api_dashboard_stats() -> dict:
-    """Live figures + latest anonymised feedback for the React dashboard."""
+def api_dashboard_stats(ward: str | None = None) -> dict:
+    """Live figures + latest anonymised feedback for the React dashboard.
+
+    Pass ?ward=<sub-county> to scope the bill list and featured bill to that
+    area; county-wide figures (SMS, votes, registrations) stay global.
+    """
     votes = store.total_votes()
     regs = store.count_registrations()
+    projects = [p for p in store.all_projects() if ward is None or p["ward"] == ward]
+    bills = []
+    for p in projects:
+        t = store.vote_tally(p["id"])
+        bills.append({
+            "id": p["id"],
+            "name": p["name_en"],
+            "ward": p["ward"],
+            "status": p["status"],
+            "support": t["support"],
+            "oppose": t["oppose"],
+            "votes_total": t["support"] + t["oppose"],
+            "feedback_count": len(store.list_feedback(p["id"])),
+        })
     return {
         "sms_total": store.sms_count(),
         "votes_total": votes,
-        "bills_tracked": len(store.all_projects()),
+        "bills_tracked": len(projects),
         "registrations": regs,
         "participation_pct": round(min(100.0, votes / regs * 100), 1) if regs else 0.0,
-        "featured": _featured_bill(),
+        "featured": _featured_bill(ward),
+        "bills": bills,
         "engagement": _engagement(7),
         "feedback": [
             {
@@ -380,7 +400,7 @@ def demo_notify(phone: str, project_id: int = 1) -> dict:
     reg = store.get_registration(hash_phone(phone))
     lang = reg["lang"] if reg else "sw"
     tr = store.get_translation(project_id, lang)
-    base = tr["sms_alert"] if tr else f"Sikika: {project['name_en']} - dial *384#."
+    base = tr["sms_alert"] if tr else f"Sikika: {project['name_en']} - dial *384*7030#."
     msg = f"{base}\nSoma: {bill_link(project)}"
     deliver(phone, msg)
     return {"sent": msg}
@@ -430,7 +450,7 @@ def _handle_sms(body, phone_hash, phone, reg, lang_hint, history) -> str:
     # HELP / MSAADA
     if up in ("HELP", "MSAADA", "SIKIKA"):
         return ("Sikika: Uliza swali lolote kuhusu bajeti au miswada ya Nakuru. "
-                "Tuma 'MAONI <ujumbe>' kutoa maoni. Piga *384#.")
+                "Tuma 'MAONI <ujumbe>' kutoa maoni. Piga *384*7030#.")
 
     # MAONI <text> / FEEDBACK <text> -> capture feedback
     if up.startswith(("MAONI", "FEEDBACK")):
@@ -456,8 +476,8 @@ def _handle_sms(body, phone_hash, phone, reg, lang_hint, history) -> str:
         return answer_sms(body, history, _projects_context(), lang_hint)
     except Exception as e:  # e.g. no API key / network — fail gracefully
         log.warning("SMS AI answer failed: %s", e)
-        return ("Sikika: Samahani, siwezi kujibu sasa. Piga *384# au uliza tena baadaye. "
-                "/ Sorry, I can't answer right now. Dial *384# or try again later.")
+        return ("Sikika: Samahani, siwezi kujibu sasa. Piga *384*7030# au uliza tena baadaye. "
+                "/ Sorry, I can't answer right now. Dial *384*7030# or try again later.")
 
 
 def _projects_context() -> str:

@@ -74,7 +74,7 @@ def notify_new_project(project_id: int) -> dict:
     sent = []
     for r in recipients:
         tr = store.get_translation(project_id, r["lang"] or "sw")
-        base = tr["sms_alert"] if tr else f"Sikika: {project['name_en']} - dial *384#."
+        base = tr["sms_alert"] if tr else f"Sikika: {project['name_en']} - dial *384*7030#."
         message = f"{base}\nSoma: {link}"
         deliver(r["phone_number"], message)
         sent.append({"lang": r["lang"], "ward": r["ward"]})

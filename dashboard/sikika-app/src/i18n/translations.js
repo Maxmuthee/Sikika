@@ -11,7 +11,7 @@ const translations = {
     heroCtaPrimary: 'Transparency Dashboard',
     statCitizens: 'Active Citizens',
     statBills: 'Active Bills',
-    statSms: 'SMS Delivery',
+    statSms: 'Messages Sent',
 
     missionEyebrow: 'Our Mission',
     missionTitle: 'Empowering the Heart of Rural Kenya',
@@ -38,7 +38,7 @@ const translations = {
     coreFeedbackTitle: 'Community Feedback',
     coreFeedbackBody:
       'Submit your concerns directly to your local ward representative via verified SMS channels.',
-    coreFeedbackTag: '8.5k Messages Sent',
+    coreFeedbackTag: 'Every Voice Counts',
     coreVerifyTitle: 'Verified Identity',
     coreVerifyBody:
       'Secure citizen verification to ensure every voice is real and every vote counts.',
@@ -85,11 +85,17 @@ const translations = {
     aiInsightTag: '✦ AI INSIGHT · AI Brief for Citizens',
     aiInsightBody:
       'This bill proposes a streamlined 2% cess for cereal exports from Molo, aiming to reinvest 40% of revenue directly into local cold storage facilities for potato farmers. It addresses historical bottlenecks in transport levies.',
-    readFullText: 'Read Full Text →',
 
     statSmsTotal: 'Total SMS Feed',
     statParticipation: 'Participation Rate',
     statBillsTracked: 'Bills Tracked',
+
+    billsListTitle: 'Bills Tracked',
+    billsListSubtitle: 'Every bill monitored by Sikika, with live votes and feedback.',
+    billsListEmpty: 'No bills are being monitored in this area yet.',
+    billsListSupport: 'support',
+    billsListOppose: 'oppose',
+    billsListFeedback: 'comments',
 
     chartTitle: 'Weekly Engagement Volume',
     chartSubtitle: 'SMS feedback trends for Agriculture Sector',
@@ -150,7 +156,7 @@ const translations = {
     heroCtaPrimary: 'Dashibodi ya Uwazi',
     statCitizens: 'Wananchi Amilifu',
     statBills: 'Miswada Amilifu',
-    statSms: 'Uwasilishaji wa SMS',
+    statSms: 'Jumbe Zilizotumwa',
 
     missionEyebrow: 'Dhamira Yetu',
     missionTitle: 'Kuwezesha Moyo wa Kenya ya Vijijini',
@@ -177,7 +183,7 @@ const translations = {
     coreFeedbackTitle: 'Maoni ya Jamii',
     coreFeedbackBody:
       'Tuma wasiwasi wako moja kwa moja kwa mwakilishi wa wodi yako kupitia njia za SMS zilizothibitishwa.',
-    coreFeedbackTag: 'Ujumbe 8.5k Umetumwa',
+    coreFeedbackTag: 'Kila Sauti Inahesabika',
     coreVerifyTitle: 'Utambulisho Uliothibitishwa',
     coreVerifyBody:
       'Uthibitishaji salama wa wananchi kuhakikisha kila sauti ni halisi na kila kura inahesabika.',
@@ -224,11 +230,17 @@ const translations = {
     aiInsightTag: '✦ MAARIFA YA AI · Muhtasari wa AI kwa Wananchi',
     aiInsightBody:
       'Mswada huu unapendekeza ushuru wa 2% ulioratibiwa kwa mauzo ya nafaka nje kutoka Molo, ukilenga kuwekeza tena 40% ya mapato moja kwa moja katika vituo vya kuhifadhi baridi kwa wakulima wa viazi. Unashughulikia vikwazo vya kihistoria katika ushuru wa usafiri.',
-    readFullText: 'Soma Maandishi Kamili →',
 
     statSmsTotal: 'Jumla ya Mlisho wa SMS',
     statParticipation: 'Kiwango cha Ushiriki',
     statBillsTracked: 'Miswada Inayofuatiliwa',
+
+    billsListTitle: 'Miswada Inayofuatiliwa',
+    billsListSubtitle: 'Kila mswada unaofuatiliwa na Sikika, kwa kura na maoni ya moja kwa moja.',
+    billsListEmpty: 'Hakuna miswada inayofuatiliwa katika eneo hili bado.',
+    billsListSupport: 'mkono',
+    billsListOppose: 'upinzani',
+    billsListFeedback: 'maoni',
 
     chartTitle: 'Kiasi cha Ushiriki wa Wiki',
     chartSubtitle: 'Mienendo ya maoni ya SMS kwa Sekta ya Kilimo',
