@@ -15,7 +15,7 @@ export default function BillStatusTimeline({ bill }) {
 
   return (
     <div className="bg-white border border-navy-100 rounded-2xl p-5">
-      <h3 className="flex items-center gap-2 font-bold text-navy-700 mb-4">{t('billStatusTitle')}</h3>
+      <h3 className="font-bold text-navy-700 mb-4">{t('billStatusTitle')}</h3>
 
       <ol className="relative border-l-2 border-navy-100 ml-2 space-y-5">
         {STAGE_KEYS.map((key, i) => {
@@ -30,9 +30,9 @@ export default function BillStatusTimeline({ bill }) {
           return (
             <li key={key} className="ml-4">
               <span className={`absolute -left-[9px] w-4 h-4 rounded-full border-2 border-white ${dot}`} />
-              <p className={`text-sm font-semibold ${text}`}>{t(key)}</p>
+              <p className={`text-base font-semibold ${text}`}>{t(key)}</p>
               {active && (
-                <p className="text-xs text-navy-400">
+                <p className="text-sm text-navy-400">
                   {t('stageCurrentPhase')}
                   {bill && bill.participants > 0 && (
                     <> · {bill.participants} {t('citizensEngaged')}</>

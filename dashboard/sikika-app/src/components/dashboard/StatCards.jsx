@@ -15,7 +15,7 @@ export default function StatCards({ stats }) {
             </svg>
           </span>
         </div>
-        <p className="text-[11px] font-semibold text-navy-400 tracking-wide uppercase mb-1">{t('statSmsTotal')}</p>
+        <p className="text-xs font-semibold text-navy-400 tracking-wide uppercase mb-1">{t('statSmsTotal')}</p>
         <p className="text-2xl font-extrabold text-navy-700">{num(stats?.sms_total)}</p>
       </div>
 
@@ -28,7 +28,7 @@ export default function StatCards({ stats }) {
             </svg>
           </span>
         </div>
-        <p className="text-[11px] font-semibold text-navy-400 tracking-wide uppercase mb-1">{t('statParticipation')}</p>
+        <p className="text-xs font-semibold text-navy-400 tracking-wide uppercase mb-1">{t('statParticipation')}</p>
         <p className="text-2xl font-extrabold text-navy-700">{stats == null ? '—' : `${stats.participation_pct}%`}</p>
       </div>
 
@@ -41,7 +41,7 @@ export default function StatCards({ stats }) {
             </svg>
           </span>
         </div>
-        <p className="text-[11px] font-semibold text-navy-400 tracking-wide uppercase mb-1">{t('statBillsTracked')}</p>
+        <p className="text-xs font-semibold text-navy-400 tracking-wide uppercase mb-1">{t('statBillsTracked')}</p>
         <p className="text-2xl font-extrabold text-navy-700">{num(stats?.bills_tracked)}</p>
       </div>
     </div>

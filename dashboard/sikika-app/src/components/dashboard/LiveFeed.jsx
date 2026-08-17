@@ -36,11 +36,11 @@ export default function LiveFeed({ feedback }) {
           {t('live')}
         </span>
       </div>
-      <p className="text-xs text-navy-400 mb-4">{t('liveFeedSubtitle')}</p>
+      <p className="text-sm text-navy-400 mb-4">{t('liveFeedSubtitle')}</p>
 
       <div className="space-y-4">
         {filtered.length === 0 && (
-          <p className="text-xs text-navy-300 text-center py-6">
+          <p className="text-sm text-navy-300 text-center py-6">
             {items.length === 0
               ? 'No feedback yet — it appears here as citizens send it by SMS or USSD.'
               : 'No matches.'}
@@ -56,15 +56,15 @@ export default function LiveFeed({ feedback }) {
                   {initialsOf(f.name)}
                 </span>
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold text-navy-700 truncate">{f.name}</p>
-                  <p className="text-[10px] text-navy-300 truncate">{f.theme}</p>
+                  <p className="text-sm font-semibold text-navy-700 truncate">{f.name}</p>
+                  <p className="text-xs text-navy-300 truncate">{f.theme}</p>
                 </div>
               </div>
-              <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${sentimentClass(f.sentiment)}`}>
+              <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full ${sentimentClass(f.sentiment)}`}>
                 {f.sentiment}
               </span>
             </div>
-            <p className="text-xs text-navy-600 leading-relaxed break-words">{f.text}</p>
+            <p className="text-sm text-navy-600 leading-relaxed break-words">{f.text}</p>
           </div>
         ))}
       </div>
