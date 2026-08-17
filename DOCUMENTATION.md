@@ -220,7 +220,7 @@ An unregistered phone is walked through registration automatically (no special
 code needed — just dial):
 
 ```
-Dial *384#
+Dial *384*7030#
  → Choose language:  1 Kiswahili · 2 Gikuyu · 3 English
  → Enter national ID number
  → Choose sub-county   (paginated, all 11 Nakuru sub-counties)
@@ -235,7 +235,7 @@ SMS delivery. See §12.
 ### 8.3 Registered users — browse & participate
 
 ```
-Dial *384#
+Dial *384*7030#
  → Choose language
  → Choose sub-county
  → Choose a project / bill
