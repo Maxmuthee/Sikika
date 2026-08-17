@@ -462,6 +462,9 @@ def _handle_sms(body, phone_hash, phone, reg, lang_hint, history) -> str:
             store.all_projects()[-1] if store.all_projects() else None)
         if project is None:
             return "Sikika: Hakuna mradi kwa sasa. / No project available now."
+        if not ussd_flow.participation_open(project["status"]):
+            return ("Sikika: Ushiriki kwa mswada huu umefungwa. "
+                    "/ Participation for this bill is closed.")
         try:
             a = translate_feedback(fb, lang_hint or "sw")
             store.record_feedback(project["id"], phone_hash, lang_hint or "sw",

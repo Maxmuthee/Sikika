@@ -14,21 +14,21 @@ const translations = {
     statSms: 'Messages Sent',
 
     missionEyebrow: 'Our Mission',
-    missionTitle: 'Empowering the Heart of Rural Kenya',
+    missionTitle: 'Empowering Nakuru’s Agricultural Producers',
     missionSubtitle:
-      'We focus on rural adults aged 35 and above, the guardians of our local heritage who often face barriers to digital participation.',
-    whyTitle: 'Why Rural Adults (35+)?',
+      'We connect rural smallholders directly to county legislative policy ensuring the producers who drive our food supply have an auditable voice before local levies are passed.',
+    whyTitle: 'Why Agricultural Smallholders?',
     whyBody:
-      "Traditional digital portals often ignore those without high-speed internet or the latest smartphones. SIKIKA uses simple technology to ensure the backbone of Nakuru's rural economy has a seat at the table.",
+      "County agricultural bills and cess levies directly impact farm-gate earnings and input budgets. SIKIKA bridges the gap between complex statutory documents and the farm gate using accessible telecom channels that work on any mobile device.",
     featAccessTitle: 'Accessibility First',
     featAccessBody:
-      'Interface designed to work on both feature phones and smartphones with simple, intuitive navigation.',
-    featSmsTitle: 'SMS Connectivity',
+      'Operates seamlessly on basic feature phones via USSD (*384*7030#) and SMS, requiring zero data bundles, app downloads, or internet connectivity.',
+    featSmsTitle: 'Plain-Language Summaries',
     featSmsBody:
-      'Contribute your opinions and vote on local resolutions via standard USSD and SMS text messages.',
+      'AI-driven document parsing that distills lengthy statutory legal bills into clear, actionable breakdowns in real time.',
     featLangTitle: 'Local Languages',
     featLangBody:
-      'Full support for Swahili and Kikuyu to ensure understanding and comfortable engagement.',
+      'Multilingual interaction in Kiswahili and Kikuyu to ensure language and legal jargon are never barriers to participation.',
 
     coreTitle: 'Core Functions of SIKIKA',
     coreTrackerTitle: 'Legislative Tracker',
@@ -51,6 +51,11 @@ const translations = {
       "See how your community's feedback is being processed and track the progress of local government bills in one clear, easy-to-read view.",
     ctaPrimary: 'Access Dashboard ↗',
     ctaSecondary: 'Join via SMS',
+    joinTitle: 'Join via SMS',
+    joinBody: 'Sikika works on any phone - no smartphone or internet needed. To take part:',
+    joinStep1: 'Dial *384*7030# to register and browse bills in your language.',
+    joinStep2: 'Reply to any Sikika SMS to ask a question or send feedback.',
+    joinGotIt: 'Got it',
     liveStatus: 'LIVE SYSTEM STATUS',
     feed1: 'Sub-County 1 Feed',
     feed2: 'Sub-County 2 Feed',
@@ -139,6 +144,13 @@ const translations = {
     privacy: 'Privacy Policy',
     terms: 'Terms of Service',
     accessibility: 'Accessibility Statement',
+    legalPrivacyTitle: 'Data Privacy (ODPC)',
+    legalPrivacyBody: `Sikika complies with Kenya's Data Protection Act, 2019 and follows the standards of the Office of the Data Protection Commissioner (ODPC).\n\nWe collect only what is needed to deliver civic alerts: your phone number (to send SMS) and a one-way hashed form of your National ID (to ensure one person, one vote). Your ID is never stored in raw form and is never shown anywhere.\n\nVotes are recorded under a separate anonymous identifier that cannot be linked back to your phone or ID. We never sell or share your data with third parties.`,
+    legalTermsTitle: 'Terms of Use',
+    legalTermsBody: `Sikika is a non-partisan civic-education service. Information is simplified from official county and national documents for accessibility and may be summarised; always confirm details with the official source.\n\nParticipation (votes and feedback) is voluntary and is shared with county officials only in aggregate, anonymous form.`,
+    legalAccessTitle: 'Accessibility',
+    legalAccessBody: `Sikika is built for basic feature phones over USSD and SMS. No smartphone, internet or English literacy required. Content is offered in Kiswahili, Gikuyu, and English.\n\nThis web dashboard aims to meet WCAG 2.1 AA. If you encounter a barrier, contact info@sikika.go.ke.`,
+    close: 'Close',
     copyright:
       '© 2026 SIKIKA Portal. All rights reserved. Built for Nakuru County civic transparency.',
   },
@@ -159,21 +171,21 @@ const translations = {
     statSms: 'Jumbe Zilizotumwa',
 
     missionEyebrow: 'Dhamira Yetu',
-    missionTitle: 'Kuwezesha Moyo wa Kenya ya Vijijini',
+    missionTitle: 'Kuwezesha Wakulima wa Nakuru',
     missionSubtitle:
-      'Tunalenga watu wazima wa vijijini wenye umri wa miaka 35 na zaidi, walinzi wa urithi wetu wa kienyeji ambao mara nyingi hukabiliwa na vikwazo vya kushiriki kidijitali.',
-    whyTitle: 'Kwa Nini Watu Wazima wa Vijijini (35+)?',
+      'Tunawaunganisha wakulima wadogo mashinani moja kwa moja na sera za bunge la kaunti kuhakikisha wazalishaji wanaolisha taifa letu wanapata sauti inayoweza kuthibitishwa kabla ya tozo za mashinani kupitishwa.',
+    whyTitle: 'Kwa Nini Wakulima Wadogo?',
     whyBody:
-      "Mifumo ya kawaida ya kidijitali mara nyingi hupuuza wale wasio na mtandao wa kasi au simu janja za kisasa. SIKIKA hutumia teknolojia rahisi kuhakikisha uti wa mgongo wa uchumi wa vijijini wa Nakuru unapata nafasi mezani.",
-    featAccessTitle: 'Ufikivu Kwanza',
+      "Miswada ya kilimo na tozo za mazao za kaunti zinaathiri moja kwa moja mapato ya shambani na bajeti ya pembejeo. SIKIKA inaondoa pengo kati ya hati ngumu za kisheria na mkulima shambani kupitia njia rahisi za mawasiliano ya simu zinazofanya kazi kwenye simu yoyote.",
+    featAccessTitle: 'Ufikiaji Rahisi Zaidi',
     featAccessBody:
-      'Muundo wa kufanya kazi kwenye simu za vipengele kenye maandishi wazi na uelekezaji rahisi.',
-    featSmsTitle: 'Muunganisho wa SMS',
+      'Inafanya kazi bila matatizo kwenye simu za kawaida kupitia USSD (*384*7030#) na SMS bila kuhitaji kifurushi cha data, kupakua aplikesheni, wala kuwa mtandaoni.',
+    featSmsTitle: 'Muhtasari wa Lugha Rahisi',
     featSmsBody:
-      'Toa mawazo yako na upige kura kwa maazimio ya eneo lako kupitia USSD na SMS za kawaida.',
-    featLangTitle: 'Lugha za Kienyeji',
+      'Uchambuzi wa hati unaotumia akili mnemba (AI) unaofupisha miswada mirefu ya kisheria kuwa maelezo wazi na yenye hatua madhubuti papo hapo.',
+    featLangTitle: 'Lugha za Nyumbani',
     featLangBody:
-      'Uungwaji mkono kamili wa Kiswahili na Kiingereza kuhakikisha uelewa na ushiriki mzuri.',
+      'Mawasiliano katika lugha mbalimbali kwa Kiswahili na Gikuyu ili kuhakikisha lugha na istilahi ngumu za kisheria haziwi kizuizi kamwe katika ushiriki wako.',
 
     coreTitle: 'Kazi Kuu za SIKIKA',
     coreTrackerTitle: 'Kifuatiliaji cha Sheria',
@@ -196,6 +208,11 @@ const translations = {
       'Ona jinsi maoni ya jamii yako yanavyoshughulikiwa na fuatilia maendeleo ya miswada ya serikali ya eneo lako kwa mtazamo mmoja ulio wazi.',
     ctaPrimary: 'Fungua Dashibodi ↗',
     ctaSecondary: 'Jiunge kwa SMS',
+    joinTitle: 'Jiunge kwa SMS',
+    joinBody: 'Sikika inafanya kazi kwenye simu yoyote - hakuna haja ya simu janja au mtandao. Ili kushiriki:',
+    joinStep1: 'Piga *384*7030# kujisajili na kuangalia miswada kwa lugha yako.',
+    joinStep2: 'Jibu SMS yoyote ya Sikika kuuliza swali au kutoa maoni.',
+    joinGotIt: 'Nimeelewa',
     liveStatus: 'HALI YA MFUMO MOJA KWA MOJA',
     feed1: 'Mlisho wa Kaunti Ndogo 1',
     feed2: 'Mlisho wa Kaunti Ndogo 2',
@@ -284,6 +301,13 @@ const translations = {
     privacy: 'Sera ya Faragha',
     terms: 'Masharti ya Huduma',
     accessibility: 'Tamko la Ufikivu',
+    legalPrivacyTitle: 'Faragha ya Data (ODPC)',
+    legalPrivacyBody: `Sikika inazingatia Sheria ya Ulinzi wa Data ya Kenya, 2019 na inafuata viwango vya Ofisi ya Kamishna wa Ulinzi wa Data (ODPC).\n\nTunakusanya tu kinachohitajika kutuma arifa za kiraia: nambari yako ya simu (kwa kutuma SMS) na umbo la hashi la Nambari yako ya Kitambulisho (kuhakikisha mtu mmoja, kura moja). Kitambulisho chako hakihifadhiwi katika umbo halisi wala hakionyeshwi popote.\n\nKura zinarekodiwa kwa kitambulisho tofauti kisichoweza kuunganishwa na simu au kitambulisho chako. Hatuziuza wala kushiriki data yako na wahusika wengine.`,
+    legalTermsTitle: 'Masharti ya Matumizi',
+    legalTermsBody: `Sikika ni huduma isiyoegemea upande wowote ya elimu ya kiraia. Taarifa hurahisishwa kutoka kwa nyaraka rasmi za kaunti na serikali kwa urahisi wa kusoma na zinaweza kuwa muhtasari; thibitisha kila wakati maelezo kutoka kwa chanzo rasmi.\n\nUshiriki (kura na maoni) ni wa hiari na hupewa maafisa wa kaunti pekee katika umbo la muhtasari na bila majina.`,
+    legalAccessTitle: 'Ufikivu',
+    legalAccessBody: `Sikika imejengwa kwa simu rahisi kupitia USSD na SMS. Hakuna haja ya simu janja, mtandao au ujuzi wa Kiingereza. Maudhui yanapatikana kwa Kiswahili, Gikuyu na Kiingereza.\n\nDashibodi hii ya wavuti inalenga kukidhi viwango vya WCAG 2.1 AA. Ukikumbana na kizuizi, wasiliana nasi kupitia info@sikika.go.ke.`,
+    close: 'Funga',
     copyright:
       '© 2026 Portal ya SIKIKA. Haki zote zimehifadhiwa. Imejengwa kwa uwazi wa kiraia wa Kaunti ya Nakuru.',
   },

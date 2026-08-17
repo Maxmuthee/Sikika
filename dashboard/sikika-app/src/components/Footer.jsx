@@ -1,19 +1,11 @@
 import { useState } from 'react'
 import { useLanguage } from '../i18n/LanguageContext.jsx'
 
+// Each modal's copy is stored in the translations (en/sw) via these keys.
 const LEGAL = {
-  privacy: {
-    title: 'Data Privacy (ODPC)',
-    body: `Sikika complies with Kenya's Data Protection Act, 2019 and follows the standards of the Office of the Data Protection Commissioner (ODPC).\n\nWe collect only what is needed to deliver civic alerts: your phone number (to send SMS) and a one-way hashed form of your National ID (to ensure one person, one vote). Your ID is never stored in raw form and is never shown anywhere.\n\nVotes are recorded under a separate anonymous identifier that cannot be linked back to your phone or ID. We never sell or share your data with third parties.`,
-  },
-  terms: {
-    title: 'Terms of Use',
-    body: `Sikika is a non-partisan civic-education service. Information is simplified from official county and national documents for accessibility and may be summarised; always confirm details with the official source.\n\nParticipation (votes and feedback) is voluntary and is shared with county officials only in aggregate, anonymous form.`,
-  },
-  accessibility: {
-    title: 'Accessibility',
-    body: `Sikika is built for basic feature phones over USSD and SMS. No smartphone, internet or English literacy required. Content is offered in Kiswahili, Gikuyu, and English.\n\nThis web dashboard aims to meet WCAG 2.1 AA. If you encounter a barrier, contact info@sikika.go.ke.`,
-  },
+  privacy: { titleKey: 'legalPrivacyTitle', bodyKey: 'legalPrivacyBody' },
+  terms: { titleKey: 'legalTermsTitle', bodyKey: 'legalTermsBody' },
+  accessibility: { titleKey: 'legalAccessTitle', bodyKey: 'legalAccessBody' },
 }
 
 export default function Footer() {
@@ -99,7 +91,7 @@ export default function Footer() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between mb-3">
-              <h3 className="font-extrabold text-navy-700 text-lg">{LEGAL[modal].title}</h3>
+              <h3 className="font-extrabold text-navy-700 text-lg">{t(LEGAL[modal].titleKey)}</h3>
               <button
                 onClick={() => setModal(null)}
                 aria-label="Close"
@@ -108,12 +100,12 @@ export default function Footer() {
                 ×
               </button>
             </div>
-            <p className="text-sm text-navy-500 leading-relaxed whitespace-pre-line">{LEGAL[modal].body}</p>
+            <p className="text-sm text-navy-500 leading-relaxed whitespace-pre-line">{t(LEGAL[modal].bodyKey)}</p>
             <button
               onClick={() => setModal(null)}
               className="mt-5 w-full bg-brand text-white text-sm font-semibold py-2.5 rounded-lg hover:bg-orange-700 transition"
             >
-              Close
+              {t('close')}
             </button>
           </div>
         </div>

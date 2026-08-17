@@ -88,7 +88,7 @@ export default function CTABanner() {
         >
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between mb-3">
-              <h3 className="font-extrabold text-navy-700 text-lg">Join via SMS</h3>
+              <h3 className="font-extrabold text-navy-700 text-lg">{t('joinTitle')}</h3>
               <button
                 onClick={() => setShowJoin(false)}
                 aria-label="Close"
@@ -98,23 +98,23 @@ export default function CTABanner() {
               </button>
             </div>
             <p className="text-sm text-navy-500 leading-relaxed">
-              Sikika works on any phone - no smartphone or internet needed. To take part:
+              {t('joinBody')}
             </p>
             <ul className="mt-3 space-y-2 text-sm text-navy-600">
               <li className="flex gap-2">
                 <span className="font-bold text-brand">1.</span>
-                Dial <b className="text-navy-700">*384*7030#</b> to register and browse bills in your language.
+                {t('joinStep1')}
               </li>
               <li className="flex gap-2">
                 <span className="font-bold text-brand">2.</span>
-                Reply to any Sikika SMS to ask a question or send feedback.
+                {t('joinStep2')}
               </li>
             </ul>
             <button
               onClick={() => setShowJoin(false)}
               className="mt-5 w-full bg-brand text-white text-sm font-semibold py-2.5 rounded-lg hover:bg-brand-700 transition"
             >
-              Got it
+              {t('joinGotIt')}
             </button>
           </div>
         </div>

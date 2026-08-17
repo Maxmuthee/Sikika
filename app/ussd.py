@@ -33,6 +33,12 @@ SUBCOUNTIES = [
 ]
 WARDS = SUBCOUNTIES  # backward-compatible export (main.py iterates these)
 
+# A bill is open for votes/feedback ONLY while it is in the public-participation
+# phase ("Proposed"). Once it moves to "Bill"/"Ongoing" the window is closed and
+# votes/feedback are rejected with an explicit message.
+def participation_open(status: str) -> bool:
+    return (status or "").strip().lower() == "proposed"
+
 PAGE_SIZE = 4  # options per USSD screen (keeps each screen < 182 chars)
 
 LANGUAGE_MENU = (
@@ -59,7 +65,7 @@ LABELS = {
         "pick_area": "Chagua eneo lako (kata ndogo):",
         "pick_ward": "Chagua kata (ward) yako:",
         "id_taken": "Kitambulisho hiki kimeshasajiliwa. Asante.",
-        "registered": "Umesajiliwa! Utapokea arifa za miradi ya {ward}, {sub}. Piga *384# kuona miradi.",
+        "registered": "Umesajiliwa! Utapokea arifa za miradi ya {ward}, {sub}. Piga *384*7030# kuona miradi.",
         "sms_registered": "Sikika: Umesajiliwa kwa {ward}, {sub}. Utapokea arifa za miradi mipya. Asante!",
         "sms_voted": "Sikika: Kura yako kuhusu '{project}' imepokelewa. Asante kwa kushiriki!",
         "page": "Ukurasa",
@@ -86,6 +92,7 @@ LABELS = {
         "opt_support": "1. Naunga mkono",
         "opt_oppose": "2. Napinga",
         "vote_done": "Asante! Kura yako imehesabiwa.",
+        "vote_closed": "Ushiriki kwa mswada huu umefungwa. Asante.",
         "voice_note": "Utapigiwa simu usikie kwa lugha yako. Asante.",
         "nav_next": "99. Zaidi",
         "nav_back": "0. Rudi nyuma",
@@ -98,7 +105,7 @@ LABELS = {
         "pick_area": "Thura gicigo giaku:",
         "pick_ward": "Thura ward yaku:",
         "id_taken": "Kitambulisho giki nikiandikithie. Ni wega.",
-        "registered": "Niwandikithia! Niukwamukira uhoro wa miradi ya {ward}, {sub}. Hura *384# kuona miradi.",
+        "registered": "Niwandikithia! Niukwamukira uhoro wa miradi ya {ward}, {sub}. Hura *384*7030# kuona miradi.",
         "sms_registered": "Sikika: Niwandikithia {ward}, {sub}. Niukwamukira uhoro wa miradi mieru. Ni wega!",
         "sms_voted": "Sikika: Kura yaku igulyu ya '{project}' niyamukirwo. Ni wega ni gukorwo!",
         "page": "Ithangu",
@@ -125,6 +132,7 @@ LABELS = {
         "opt_support": "1. Ninyitikaniirie",
         "opt_oppose": "2. Ndiitikaniirie",
         "vote_done": "Ni wega! Kura yaku niyatarwo.",
+        "vote_closed": "Ukoru wa mswada uyu niugirirwo. Ni wega.",
         "voice_note": "Niukuhurwo thimu uigue na ruthiomi rwaku. Ni wega.",
         "nav_next": "99. Ingi",
         "nav_back": "0. Coka thutha",
@@ -137,7 +145,7 @@ LABELS = {
         "pick_area": "Choose your sub-county:",
         "pick_ward": "Choose your ward:",
         "id_taken": "This ID is already registered. Thank you.",
-        "registered": "Registered! You'll get alerts for {ward}, {sub}. Dial *384# to view projects.",
+        "registered": "Registered! You'll get alerts for {ward}, {sub}. Dial *384*7030# to view projects.",
         "sms_registered": "Sikika: You are registered for {ward}, {sub}. You'll get alerts on new projects. Thank you!",
         "sms_voted": "Sikika: Your vote on '{project}' has been received. Thank you for taking part!",
         "page": "Page",
@@ -164,6 +172,7 @@ LABELS = {
         "opt_support": "1. I support",
         "opt_oppose": "2. I oppose",
         "vote_done": "Thank you! Your vote has been counted.",
+        "vote_closed": "Participation for this bill is closed. Thank you.",
         "voice_note": "We'll call you to listen in your language. Thank you.",
         "nav_next": "99. More",
         "nav_back": "0. Back",
@@ -356,6 +365,8 @@ def _browse_projects(reg, lang, lbl, sub, tokens):
         return f"CON {body}{_footer_deep(lbl)}"
 
     if action == "2":  # Vote — re-enter ID so one person votes only once
+        if not participation_open(project["status"]):
+            return f"END {lbl['vote_closed']}"
         if len(tokens) == 2:
             return f"CON {lbl['ask_vote_id']}"
         entered_id = tokens[2]
