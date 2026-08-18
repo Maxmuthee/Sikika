@@ -115,14 +115,19 @@ def bill_page(project_id: int) -> str:
 
 @app.get("/api/projects")
 def api_projects() -> dict:
-    """All projects with live vote tallies + feedback counts (for the dashboard)."""
+    """Tracked (Agriculture & Livestock) bills with live vote tallies + feedback
+    counts. County-wide bills appear once (they surface in every sub-county)."""
     out = []
+    seen: set[int] = set()
     for ward in ussd_flow.WARDS:
         for p in store.list_projects(ward):
+            if p["id"] in seen:
+                continue
+            seen.add(p["id"])
             out.append({
                 "id": p["id"],
                 "name": p["name_en"],
-                "ward": p["ward"],
+                "ward": store.display_ward(p),
                 "status": p["status"],
                 "votes": store.vote_tally(p["id"]),
                 "feedback_count": len(store.list_feedback(p["id"])),
@@ -225,9 +230,9 @@ _STATUS_STAGE = {"Proposed": 1, "Bill": 2, "Ongoing": 4}
 
 
 def _featured_bill(ward: str | None = None) -> dict | None:
-    """The most-engaged bill (votes + feedback) for a sub-county (or county-wide
-    when `ward` is None), with live tallies and AI brief."""
-    projects = [p for p in store.all_projects() if ward is None or p["ward"] == ward]
+    """The most-engaged tracked bill (votes + feedback) for a sub-county (or
+    county-wide when `ward` is None), with live tallies and AI brief."""
+    projects = store.all_projects() if ward is None else store.list_projects(ward)
     if not projects:
         return None
 
@@ -244,7 +249,7 @@ def _featured_bill(ward: str | None = None) -> dict | None:
     return {
         "id": p["id"],
         "title": (tr["project_name"] if tr and tr["project_name"] else p["name_en"]),
-        "ward": p["ward"],
+        "ward": store.display_ward(p),
         "status": p["status"],
         "support_pct": round(tally["support"] / total * 100) if total else 0,
         "oppose_pct": round(tally["oppose"] / total * 100) if total else 0,
@@ -261,18 +266,19 @@ def api_dashboard_stats(ward: str | None = None) -> dict:
     """Live figures + latest anonymised feedback for the React dashboard.
 
     Pass ?ward=<sub-county> to scope the bill list and featured bill to that
-    area; county-wide figures (SMS, votes, registrations) stay global.
+    area (county-wide bills are included in every area); untracked sectors are
+    never shown. SMS/registration counts stay global.
     """
     votes = store.total_votes()
     regs = store.count_registrations()
-    projects = [p for p in store.all_projects() if ward is None or p["ward"] == ward]
+    projects = store.all_projects() if ward is None else store.list_projects(ward)
     bills = []
     for p in projects:
         t = store.vote_tally(p["id"])
         bills.append({
             "id": p["id"],
             "name": p["name_en"],
-            "ward": p["ward"],
+            "ward": store.display_ward(p),
             "status": p["status"],
             "support": t["support"],
             "oppose": t["oppose"],
@@ -461,7 +467,8 @@ def _handle_sms(body, phone_hash, phone, reg, lang_hint, history) -> str:
         project = (store.latest_project_in(sub) if sub else None) or (
             store.all_projects()[-1] if store.all_projects() else None)
         if project is None:
-            return "Sikika: Hakuna mradi kwa sasa. / No project available now."
+            return ("Sikika: Hakuna miswada inayofanya kazi kwa sasa. "
+                    "/ There are no active bills right now.")
         if not ussd_flow.participation_open(project["status"]):
             return ("Sikika: Ushiriki kwa mswada huu umefungwa. "
                     "/ Participation for this bill is closed.")
@@ -484,15 +491,16 @@ def _handle_sms(body, phone_hash, phone, reg, lang_hint, history) -> str:
 
 
 def _projects_context() -> str:
-    """Compact fact sheet of all current projects/bills for the SMS assistant."""
+    """Compact fact sheet of all tracked bills for the SMS assistant."""
     lines = []
     for p in store.all_projects():
         tr = store.get_translation(p["id"], "en")
+        loc = store.display_ward(p)
         if tr:
-            lines.append(f"- #{p['id']} {tr['project_name']} ({p['ward']}): "
+            lines.append(f"- #{p['id']} {tr['project_name']} ({loc}): "
                          f"{tr['civic_education']} {tr['data_summary']}")
         else:
-            lines.append(f"- #{p['id']} {p['name_en']} ({p['ward']})")
+            lines.append(f"- #{p['id']} {p['name_en']} ({loc})")
     return "\n".join(lines)
 
 

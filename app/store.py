@@ -5,13 +5,19 @@ file. All application queries are written with '?' placeholders and are
 translated to '%s' for PostgreSQL, so the rest of the app is backend-agnostic.
 
 Tables:
-  projects       -- a tabled budget item / bill (raw English source)
+  projects       -- a tabled budget item / bill (raw English source); carries a
+                    `sector` label and a `county_wide` flag (see TRACKED_SECTORS)
   translations   -- AI-simplified content per project x language
   profiles       -- hashed phone -> ward/language (no personal data)
   registrations  -- one-time citizen signup (hashed ID, phone for delivery)
   votes          -- one support/oppose per person per project (vote nullifier)
   feedback       -- citizen feedback: English + PII-scrubbed + tagged
   sms            -- two-way SMS thread (notifications + AI Q&A)
+
+Sector policy: Sikika monitors ONLY Agriculture & Livestock bills. Every public
+query (dashboard, USSD, SMS routing, notifications, stats, AI context) filters
+on TRACKED_SECTORS, so bills in other sectors (development, health,
+infrastructure, explosives, finance, ...) are neither tracked nor shown.
 """
 
 from __future__ import annotations
@@ -81,6 +87,38 @@ def _conn() -> Iterator[_DB]:
             raw.close()
 
 
+# --- Sector policy ----------------------------------------------------------
+# Sikika tracks ONLY Agriculture & Livestock bills. Bills in any other sector
+# (development, health, infrastructure, explosives, finance, constitutional
+# affairs, water, ...) are excluded from every public query below.
+TRACKED_SECTORS = ("Agriculture & Livestock",)
+
+# Display label for bills that apply to Nakuru County as a whole.
+COUNTY_WIDE_WARD = "Nakuru County"
+
+
+def is_county_wide(project) -> bool:
+    """True when a bill cuts across all sub-counties (Nakuru as a whole), so it
+    must be visible/actionable in every sub-county's menu."""
+    return "county_wide" in project.keys() and bool(project["county_wide"])
+
+
+def display_ward(project) -> str:
+    """Sub-county label shown to citizens; county-wide bills show the county."""
+    return COUNTY_WIDE_WARD if is_county_wide(project) else project["ward"]
+
+
+def is_tracked(project) -> bool:
+    """True when a project belongs to a sector Sikika monitors."""
+    sector = project["sector"] if "sector" in project.keys() else None
+    return sector in TRACKED_SECTORS
+
+
+def _tracked_placeholders() -> str:
+    """'?' placeholders for the TRACKED_SECTORS IN-clause (backend-agnostic)."""
+    return ", ".join("?" for _ in TRACKED_SECTORS)
+
+
 def _ddl() -> list[str]:
     # Dialect-specific bits; the rest of the SQL is identical across backends.
     pk = "SERIAL PRIMARY KEY" if IS_PG else "INTEGER PRIMARY KEY AUTOINCREMENT"
@@ -89,6 +127,7 @@ def _ddl() -> list[str]:
         f"""CREATE TABLE IF NOT EXISTS projects (
                 id {pk}, ward TEXT NOT NULL, name_en TEXT NOT NULL,
                 raw_text TEXT NOT NULL, pdf_path TEXT, source_url TEXT,
+                sector TEXT, county_wide INTEGER NOT NULL DEFAULT 0,
                 status TEXT DEFAULT 'Proposed')""",
         """CREATE TABLE IF NOT EXISTS translations (
                 project_id INTEGER NOT NULL, lang TEXT NOT NULL,
@@ -121,44 +160,87 @@ def init_db() -> None:
     with _conn() as c:
         for stmt in _ddl():
             c.execute(stmt)
-        # Migration: add source_url to older databases without dropping data.
+        # Migration: add columns to older databases without dropping data.
         if IS_PG:
             c.execute("ALTER TABLE projects ADD COLUMN IF NOT EXISTS source_url TEXT")
+            c.execute("ALTER TABLE projects ADD COLUMN IF NOT EXISTS sector TEXT")
+            c.execute("ALTER TABLE projects ADD COLUMN IF NOT EXISTS county_wide INTEGER NOT NULL DEFAULT 0")
         else:
             cols = [r["name"] for r in c.execute("PRAGMA table_info(projects)")]
             if "source_url" not in cols:
                 c.execute("ALTER TABLE projects ADD COLUMN source_url TEXT")
+            if "sector" not in cols:
+                c.execute("ALTER TABLE projects ADD COLUMN sector TEXT")
+            if "county_wide" not in cols:
+                c.execute("ALTER TABLE projects ADD COLUMN county_wide INTEGER NOT NULL DEFAULT 0")
+        # Backfill sector/county_wide for rows created before this migration, so
+        # a deployed DB that only runs init_db() on startup is classified
+        # correctly without a manual re-seed. Mirrors the entries in data/seed.py.
+        _SECTOR_BY_NAME = {
+            "Molo fertilizer subsidy": "Agriculture & Livestock",
+            "Njoro water rehabilitation": "Water",
+            "Naivasha roads upgrade": "Infrastructure",
+            "Health facilities upgrade": "Health",
+            "Rongai ward infrastructure": "Infrastructure",
+            "The Explosives Bill 2026": "Mining & Explosives",
+            "The Finance Bill 2026": "Finance",
+            "Constitution (Amendment) Bill 2026": "Constitutional Affairs",
+            "County Wards (Equitable Development) Bill 2024": "Development",
+            "Digital Agricultural Information Bill 2026": "Agriculture & Livestock",
+            "Livestock Protection & Sustainability Bill 2024": "Agriculture & Livestock",
+            "Agriculture Produce (Minimum Returns) Bill 2025": "Agriculture & Livestock",
+        }
+        _COUNTY_WIDE_BY_NAME = {
+            "The Explosives Bill 2026", "The Finance Bill 2026",
+            "Constitution (Amendment) Bill 2026",
+            "County Wards (Equitable Development) Bill 2024",
+            "Digital Agricultural Information Bill 2026",
+            "Livestock Protection & Sustainability Bill 2024",
+            "Agriculture Produce (Minimum Returns) Bill 2025",
+        }
+        for name, sector in _SECTOR_BY_NAME.items():
+            c.execute("UPDATE projects SET sector = ? WHERE name_en = ? AND sector IS NULL",
+                      (sector, name))
+        for name in _COUNTY_WIDE_BY_NAME:
+            c.execute("UPDATE projects SET county_wide = 1 WHERE name_en = ? AND county_wide = 0",
+                      (name,))
 
 
 # --- projects & translations -------------------------------------------------
 def upsert_project(ward: str, name_en: str, raw_text: str,
-                   pdf_path: Optional[str] = None, status: str = "Proposed") -> int:
+                   pdf_path: Optional[str] = None, status: str = "Proposed",
+                   sector: Optional[str] = None, county_wide: int = 0) -> int:
     with _conn() as c:
         row = c.execute(
-            "INSERT INTO projects (ward, name_en, raw_text, pdf_path, status) "
-            "VALUES (?,?,?,?,?) RETURNING id",
-            (ward, name_en, raw_text, pdf_path, status),
+            "INSERT INTO projects (ward, name_en, raw_text, pdf_path, status, "
+            "sector, county_wide) VALUES (?,?,?,?,?,?,?) RETURNING id",
+            (ward, name_en, raw_text, pdf_path, status, sector, int(county_wide)),
         ).fetchone()
         return int(row["id"])
 
 
 def get_or_create_project(ward: str, name_en: str, raw_text: str,
-                          pdf_path: Optional[str] = None, status: str = "Proposed") -> int:
+                          pdf_path: Optional[str] = None, status: str = "Proposed",
+                          sector: Optional[str] = None, county_wide: int = 0) -> int:
     """Return the id of an existing (ward, name) project, or create it.
 
     Makes seeding idempotent — re-running init_db does not duplicate rows or
-    disturb votes/feedback already recorded against a project.
+    disturb votes/feedback already recorded against a project. On an existing
+    row we still refresh sector/county_wide so re-seeding migrates old data.
     """
     with _conn() as c:
         row = c.execute(
             "SELECT id FROM projects WHERE ward = ? AND name_en = ?", (ward, name_en)
         ).fetchone()
         if row:
-            return int(row["id"])
+            pid = int(row["id"])
+            c.execute("UPDATE projects SET sector = ?, county_wide = ? WHERE id = ?",
+                      (sector, int(county_wide), pid))
+            return pid
         row = c.execute(
-            "INSERT INTO projects (ward, name_en, raw_text, pdf_path, status) "
-            "VALUES (?,?,?,?,?) RETURNING id",
-            (ward, name_en, raw_text, pdf_path, status),
+            "INSERT INTO projects (ward, name_en, raw_text, pdf_path, status, "
+            "sector, county_wide) VALUES (?,?,?,?,?,?,?) RETURNING id",
+            (ward, name_en, raw_text, pdf_path, status, sector, int(county_wide)),
         ).fetchone()
         return int(row["id"])
 
@@ -191,9 +273,13 @@ def translation_exists(project_id: int, lang: str) -> bool:
 
 
 def list_projects(ward: str) -> list[sqlite3.Row]:
+    """Tracked bills visible to a sub-county: its own bills plus every
+    county-wide bill (a bill for Nakuru as a whole is actionable everywhere)."""
     with _conn() as c:
         return c.execute(
-            "SELECT * FROM projects WHERE ward = ? ORDER BY id", (ward,)
+            f"SELECT * FROM projects WHERE sector IN ({_tracked_placeholders()}) "
+            "AND (ward = ? OR county_wide = 1) ORDER BY id",
+            (*TRACKED_SECTORS, ward),
         ).fetchall()
 
 
@@ -366,13 +452,24 @@ def sms_history_for_ai(phone_hash: str, limit: int = 6) -> list[tuple[str, str]]
 
 
 def all_projects() -> list[sqlite3.Row]:
+    """Every tracked (Agriculture & Livestock) bill, oldest first. Untracked
+    sectors never surface anywhere on the platform."""
     with _conn() as c:
-        return c.execute("SELECT * FROM projects ORDER BY id").fetchall()
+        return c.execute(
+            f"SELECT * FROM projects WHERE sector IN ({_tracked_placeholders()}) "
+            "ORDER BY id",
+            (*TRACKED_SECTORS,),
+        ).fetchall()
 
 
 def total_votes() -> int:
+    """Votes cast on tracked bills only (untracked sectors aren't monitored)."""
     with _conn() as c:
-        return int(c.execute("SELECT COUNT(*) n FROM votes").fetchone()["n"])
+        return int(c.execute(
+            f"SELECT COUNT(*) n FROM votes v JOIN projects p ON p.id = v.project_id "
+            f"WHERE p.sector IN ({_tracked_placeholders()})",
+            (*TRACKED_SECTORS,),
+        ).fetchone()["n"])
 
 
 def sms_count() -> int:
@@ -383,41 +480,66 @@ def sms_count() -> int:
 def recent_feedback(limit: int = 6) -> list[sqlite3.Row]:
     with _conn() as c:
         return c.execute(
-            "SELECT phone_hash, english, sentiment, theme FROM feedback "
-            "ORDER BY id DESC LIMIT ?", (limit,),
+            f"SELECT f.phone_hash, f.english, f.sentiment, f.theme "
+            f"FROM feedback f JOIN projects p ON p.id = f.project_id "
+            f"WHERE p.sector IN ({_tracked_placeholders()}) "
+            f"ORDER BY f.id DESC LIMIT ?",
+            (*TRACKED_SECTORS, limit),
         ).fetchall()
 
 
 def recent_activity(limit: int = 5) -> list[sqlite3.Row]:
-    """Newest citizen events across registrations, votes and feedback."""
+    """Newest citizen events — feedback & votes on tracked bills, registrations."""
     with _conn() as c:
         return c.execute(
-            "SELECT kind, area, at FROM ("
-            "  SELECT 'feedback' AS kind, r.sub_county AS area, f.created_at AS at "
-            "    FROM feedback f LEFT JOIN registrations r ON r.phone_hash = f.phone_hash "
-            "  UNION ALL "
-            "  SELECT 'registration' AS kind, sub_county AS area, created_at AS at FROM registrations "
-            "  UNION ALL "
-            "  SELECT 'vote' AS kind, CAST(NULL AS TEXT) AS area, created_at AS at FROM votes "
-            ") ORDER BY at DESC LIMIT ?", (limit,),
+            f"SELECT kind, area, at FROM ("
+            f"  SELECT 'feedback' AS kind, r.sub_county AS area, f.created_at AS at "
+            f"    FROM feedback f JOIN projects p ON p.id = f.project_id "
+            f"    LEFT JOIN registrations r ON r.phone_hash = f.phone_hash "
+            f"    WHERE p.sector IN ({_tracked_placeholders()}) "
+            f"  UNION ALL "
+            f"  SELECT 'registration' AS kind, sub_county AS area, created_at AS at FROM registrations "
+            f"  UNION ALL "
+            f"  SELECT 'vote' AS kind, CAST(NULL AS TEXT) AS area, v.created_at AS at "
+            f"    FROM votes v JOIN projects p ON p.id = v.project_id "
+            f"    WHERE p.sector IN ({_tracked_placeholders()}) "
+            f") ORDER BY at DESC LIMIT ?",
+            (*TRACKED_SECTORS, *TRACKED_SECTORS, limit),
         ).fetchall()
 
 
 def activity_timestamps() -> list:
-    """Every citizen-event timestamp (votes, feedback, registrations) for trend charts."""
+    """Citizen-event timestamps (feedback & votes on tracked bills, plus
+    registrations) for the dashboard trend chart."""
     with _conn() as c:
         rows = c.execute(
-            "SELECT at FROM ("
-            "  SELECT created_at AS at FROM votes "
-            "  UNION ALL SELECT created_at AS at FROM feedback "
-            "  UNION ALL SELECT created_at AS at FROM registrations "
-            ")"
+            f"SELECT at FROM ("
+            f"  SELECT v.created_at AS at FROM votes v "
+            f"    JOIN projects p ON p.id = v.project_id "
+            f"    WHERE p.sector IN ({_tracked_placeholders()}) "
+            f"  UNION ALL SELECT f.created_at AS at FROM feedback f "
+            f"    JOIN projects p ON p.id = f.project_id "
+            f"    WHERE p.sector IN ({_tracked_placeholders()}) "
+            f"  UNION ALL SELECT created_at AS at FROM registrations "
+            f")",
+            (*TRACKED_SECTORS, *TRACKED_SECTORS),
         ).fetchall()
     return [r["at"] for r in rows]
 
 
 def latest_project_in(sub_county: str) -> Optional[sqlite3.Row]:
+    """Newest tracked bill open to a sub-county (county-wide bills included)."""
     with _conn() as c:
         return c.execute(
-            "SELECT * FROM projects WHERE ward = ? ORDER BY id DESC LIMIT 1", (sub_county,)
+            f"SELECT * FROM projects WHERE sector IN ({_tracked_placeholders()}) "
+            "AND (ward = ? OR county_wide = 1) ORDER BY id DESC LIMIT 1",
+            (*TRACKED_SECTORS, sub_county),
         ).fetchone()
+
+
+def all_registrations() -> list[sqlite3.Row]:
+    """Every registered citizen, used to alert about county-wide bills."""
+    with _conn() as c:
+        return c.execute(
+            "SELECT phone_number, lang, ward FROM registrations ORDER BY ward"
+        ).fetchall()

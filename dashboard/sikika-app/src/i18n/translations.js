@@ -34,7 +34,7 @@ const translations = {
     coreTrackerTitle: 'Legislative Tracker',
     coreTrackerBody:
       'Monitor every bill proposed in the Nakuru County Assembly from inception to signing.',
-    coreTrackerTag: '12 Open Bills',
+    coreTrackerTag: 'Agriculture & Livestock Bills',
     coreFeedbackTitle: 'Community Feedback',
     coreFeedbackBody:
       'Submit your concerns directly to your local ward representative via verified SMS channels.',
@@ -86,7 +86,7 @@ const translations = {
     opposition: 'Opposition',
     citizensEngaged: 'citizens engaged',
     noActivity7d: 'No activity recorded in the last 7 days.',
-    noBillYet: 'No bills are being tracked yet.',
+    noBillYet: 'There are no active bills in this area right now.',
     aiInsightTag: '✦ AI INSIGHT · AI Brief for Citizens',
     aiInsightBody:
       'This bill proposes a streamlined 2% cess for cereal exports from Molo, aiming to reinvest 40% of revenue directly into local cold storage facilities for potato farmers. It addresses historical bottlenecks in transport levies.',
@@ -97,7 +97,7 @@ const translations = {
 
     billsListTitle: 'Bills Tracked',
     billsListSubtitle: 'Every bill monitored by Sikika, with live votes and feedback.',
-    billsListEmpty: 'No bills are being monitored in this area yet.',
+    billsListEmpty: 'There are no current active bills in this sub-county.',
     billsListSupport: 'support',
     billsListOppose: 'oppose',
     billsListFeedback: 'comments',
@@ -135,7 +135,7 @@ const translations = {
     searchPlaceholder: 'Search feedback...',
 
     submitTitle: 'Submit Your View',
-    submitBody: 'SMS your feedback on the bill to 20880.',
+    submitBody: 'SMS your feedback on the bill to 20880 starting with kamilimu sikika MAONI.',
 
     footerBody:
       'Bridging the gap between rural communities in Nakuru and local government processes. Empowering citizens through transparency and digital engagement.',
@@ -191,7 +191,7 @@ const translations = {
     coreTrackerTitle: 'Kifuatiliaji cha Sheria',
     coreTrackerBody:
       'Fuatilia kila mswada uliopendekezwa katika Bunge la Kaunti ya Nakuru tangu kuanzishwa hadi kusainiwa.',
-    coreTrackerTag: 'Miswada 12 Wazi',
+    coreTrackerTag: 'Miswada ya Kilimo na Mifugo',
     coreFeedbackTitle: 'Maoni ya Jamii',
     coreFeedbackBody:
       'Tuma wasiwasi wako moja kwa moja kwa mwakilishi wa wodi yako kupitia njia za SMS zilizothibitishwa.',
@@ -243,7 +243,7 @@ const translations = {
     opposition: 'Upinzani',
     citizensEngaged: 'wananchi wameshiriki',
     noActivity7d: 'Hakuna shughuli iliyorekodiwa katika siku 7 zilizopita.',
-    noBillYet: 'Hakuna miswada inayofuatiliwa bado.',
+    noBillYet: 'Hakuna miswada inayofanya kazi katika eneo hili kwa sasa.',
     aiInsightTag: '✦ MAARIFA YA AI · Muhtasari wa AI kwa Wananchi',
     aiInsightBody:
       'Mswada huu unapendekeza ushuru wa 2% ulioratibiwa kwa mauzo ya nafaka nje kutoka Molo, ukilenga kuwekeza tena 40% ya mapato moja kwa moja katika vituo vya kuhifadhi baridi kwa wakulima wa viazi. Unashughulikia vikwazo vya kihistoria katika ushuru wa usafiri.',
@@ -254,7 +254,7 @@ const translations = {
 
     billsListTitle: 'Miswada Inayofuatiliwa',
     billsListSubtitle: 'Kila mswada unaofuatiliwa na Sikika, kwa kura na maoni ya moja kwa moja.',
-    billsListEmpty: 'Hakuna miswada inayofuatiliwa katika eneo hili bado.',
+    billsListEmpty: 'Hakuna miswada inayofanya kazi katika eneo hili kwa sasa.',
     billsListSupport: 'mkono',
     billsListOppose: 'upinzani',
     billsListFeedback: 'maoni',
@@ -292,7 +292,7 @@ const translations = {
     searchPlaceholder: 'Tafuta maoni...',
 
     submitTitle: 'Wasilisha Maoni Yako',
-    submitBody: 'Tuma maoni yako kuhusu Mswada kwa SMS hadi 20880.',
+    submitBody: 'Tuma maoni yako kuhusu Mswada kwa SMS hadi 20880 ukianza na kamilimu sikika MAONI.',
 
     footerBody:
       'Kuziba pengo kati ya jamii za vijijini Nakuru na taratibu za serikali za mitaa. Kuwawezesha wananchi kupitia uwazi na ushiriki wa kidijitali.',

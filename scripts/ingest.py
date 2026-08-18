@@ -22,33 +22,31 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from ai import LANGUAGES, simplify_budget, simplify_pdf
 from app import store
 from data.seed import seed_all
-from app.ussd import SUBCOUNTIES
 
 
 def ingest() -> None:
     seed_all()  # ensure projects exist (idempotent-ish for a fresh demo DB)
 
-    for ward in SUBCOUNTIES:
-        for project in store.list_projects(ward):
-            pid, name, pdf = project["id"], project["name_en"], project["pdf_path"]
-            print(f"\nProject #{pid}: {name}  ({'PDF' if pdf else 'text'} source)")
-            for lang in LANGUAGES:
-                try:
-                    if pdf:
-                        s = simplify_pdf(pdf, lang)
-                    else:
-                        s = simplify_budget(project["raw_text"], lang)
-                    # Safety net: cap USSD-bound fields so a screen can't overflow.
-                    store.upsert_translation(
-                        pid, lang,
-                        project_name=s.project_name.strip()[:60],
-                        sms_alert=s.sms_alert.strip()[:160],
-                        civic_education=s.civic_education.strip()[:130],
-                        data_summary=s.data_summary.strip()[:130],
-                    )
-                    print(f"  {lang}: {s.sms_alert[:70]}...")
-                except Exception as e:  # keep going; one language failing is not fatal
-                    print(f"  {lang}: SKIPPED ({type(e).__name__}: {e})")
+    for project in store.all_projects():  # tracked bills only, each once
+        pid, name, pdf = project["id"], project["name_en"], project["pdf_path"]
+        print(f"\nProject #{pid}: {name}  ({'PDF' if pdf else 'text'} source)")
+        for lang in LANGUAGES:
+            try:
+                if pdf:
+                    s = simplify_pdf(pdf, lang)
+                else:
+                    s = simplify_budget(project["raw_text"], lang)
+                # Safety net: cap USSD-bound fields so a screen can't overflow.
+                store.upsert_translation(
+                    pid, lang,
+                    project_name=s.project_name.strip()[:60],
+                    sms_alert=s.sms_alert.strip()[:160],
+                    civic_education=s.civic_education.strip()[:130],
+                    data_summary=s.data_summary.strip()[:130],
+                )
+                print(f"  {lang}: {s.sms_alert[:70]}...")
+            except Exception as e:  # keep going; one language failing is not fatal
+                print(f"  {lang}: SKIPPED ({type(e).__name__}: {e})")
 
     print("\nIngest complete. USSD now serves AI-simplified content.")
 

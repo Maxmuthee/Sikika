@@ -63,14 +63,21 @@ def deliver(phone_number: str, message: str) -> None:
 
 
 def notify_new_project(project_id: int) -> dict:
-    """Alert every registered citizen in the project's sub-county, in their language."""
+    """Alert citizens about a new bill: its sub-county for sub-county bills, or
+    every registered citizen county-wide for bills that cut across all
+    sub-counties. Untracked sectors are never notified (not monitored)."""
     project = store.get_project(project_id)
     if project is None:
         return {"error": "unknown project"}
+    if not store.is_tracked(project):
+        return {"error": "bill is not in a tracked sector"}
 
     sub = project["ward"]
     link = bill_link(project)
-    recipients = store.registrations_in(sub)
+    if store.is_county_wide(project):
+        recipients = store.all_registrations()
+    else:
+        recipients = store.registrations_in(sub)
     sent = []
     for r in recipients:
         tr = store.get_translation(project_id, r["lang"] or "sw")

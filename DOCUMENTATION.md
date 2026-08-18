@@ -423,6 +423,22 @@ Base URL in development: `http://localhost:8000`.
 
 The `/ussd` and `/sms` request shapes match Africa's Talking exactly.
 
+> **Tracking policy.** Sikika monitors ONLY **Agriculture & Livestock** bills
+> (`TRACKED_SECTORS` in `app/store.py`). Bills in other sectors (development,
+> health, infrastructure, water, explosives, finance, constitutional affairs,
+> …) are never surfaced on the dashboard, USSD menus, SMS routing, stats, or
+> notifications. Sub-counties without an active bill in that sector show
+> *"no active bills in this area"*.
+>
+> **County-wide bills.** A bill flagged `county_wide=1` (a bill for Nakuru as a
+> whole) appears in every sub-county's menu and alerts every registered
+> citizen; `county_wide=0` bills reach only their own sub-county.
+>
+> **Participation window.** A bill is open for SMS feedback & USSD votes only
+> while in the public-participation phase — status `Proposed` or `Bill`.
+> Once a bill moves past it (e.g. `Ongoing`, `Enacted`) votes/feedback are
+> rejected with an explicit message (see `participation_open` in `app/ussd.py`).
+
 ---
 
 ## 14. The Local Simulator

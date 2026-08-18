@@ -33,12 +33,13 @@ SUBCOUNTIES = [
 ]
 WARDS = SUBCOUNTIES  # backward-compatible export (main.py iterates these)
 
-# Participation window. Currently ALL bills are open for votes/feedback
-# (demo mode). To re-enable the status-based rule (only "Proposed" bills open),
-# change the return to:
-#     return (status or "").strip().lower() == "proposed"
+# A bill is open for votes/SMS feedback ONLY while it is in the public-
+# participation phase: "Proposed" (county items with forums scheduled/underway)
+# and "Bill" (public input open). Once a bill moves past that stage — e.g.
+# "Ongoing", "Enacted", "Assented" — the window closes and votes/feedback are
+# rejected with an explicit message.
 def participation_open(status: str) -> bool:
-    return True
+    return (status or "").strip().lower() in {"proposed", "bill"}
 
 PAGE_SIZE = 4  # options per USSD screen (keeps each screen < 182 chars)
 
@@ -70,7 +71,7 @@ LABELS = {
         "sms_registered": "Sikika: Umesajiliwa kwa {ward}, {sub}. Utapokea arifa za miradi mipya. Asante!",
         "sms_voted": "Sikika: Kura yako kuhusu '{project}' imepokelewa. Asante kwa kushiriki!",
         "page": "Ukurasa",
-        "no_projects": "Hakuna miradi katika eneo hili kwa sasa. Asante.",
+        "no_projects": "Hakuna miswada inayofanya kazi katika eneo hili kwa sasa. Asante.",
         "projects": "Miradi na miswada:",
         "welcome": "Karibu Sikika.",
         "menu_my_area": "1. Miradi ya {area}",
@@ -150,7 +151,7 @@ LABELS = {
         "sms_registered": "Sikika: You are registered for {ward}, {sub}. You'll get alerts on new projects. Thank you!",
         "sms_voted": "Sikika: Your vote on '{project}' has been received. Thank you for taking part!",
         "page": "Page",
-        "no_projects": "No projects in this area yet. Thank you.",
+        "no_projects": "No active bills in this area right now. Thank you.",
         "projects": "Projects & bills:",
         "welcome": "Welcome to Sikika.",
         "menu_my_area": "1. Projects in {area}",

@@ -1,11 +1,16 @@
 """Seed projects + fallback translations across Nakuru sub-counties.
 
 Real, current items (FY2025/26 Nakuru budget priorities + bills before
-Parliament in 2026), each placed in ONE sub-county so no bill repeats across
-the menu. Sources: Nakuru County FY2025/26 estimates (roads 800km, water
-ceiling KSh 413M, total KSh 20.7B); Parliament 2026 bill tracker (Finance Bill
-2026, Constitution of Kenya (Amendment) Bill 2026); Ministry of Mining
-Explosives Bill 2026.
+Parliament in 2026). Sikika tracks ONLY the Agriculture & Livestock sector; the
+other rows are seeded for completeness of the data model but are excluded from
+every query by TRACKED_SECTORS in app/store.py. National/Senate bills that cut
+across all sub-counties are flagged county_wide=1 so they are visible and
+actionable in every sub-county's menu (county items stay sub-county specific).
+
+Sources: Nakuru County FY2025/26 estimates (roads 800km, water ceiling
+KSh 413M, total KSh 20.7B); Parliament 2026 bill tracker (Finance Bill 2026,
+Constitution of Kenya (Amendment) Bill 2026); Ministry of Mining Explosives
+Bill 2026.
 
 Fallback translations are HAND-WRITTEN plain-language stand-ins so USSD works
 with no API key. Amounts are written in Kiswahili words (e.g. "shilingi milioni
@@ -27,6 +32,7 @@ EXPLOSIVES_PDF = os.path.join(_HERE, "explosives_bill_2026.pdf")
 PROJECTS = [
     {
         "sub": "Molo", "name_en": "Molo fertilizer subsidy", "status": "Proposed",
+        "sector": "Agriculture & Livestock", "county_wide": 0,
         "raw": ("Agriculture, Livestock & Fisheries. Proposed FY2025/26: fertilizer "
                 "subsidy for smallholder farmers, Molo, Nakuru County: KSh 5,000,000 "
                 "from the Nakuru County Agricultural Development Fund; 2,000 subsidised "
@@ -48,6 +54,7 @@ PROJECTS = [
     },
     {
         "sub": "Molo", "name_en": "The Explosives Bill 2026", "status": "Bill",
+        "sector": "Mining & Explosives", "county_wide": 1,
         "pdf": EXPLOSIVES_PDF,
         "raw": ("The Explosives Bill, 2026 (Ministry of Mining). Regulates manufacture, "
                 "import, storage, transport, sale and use of explosives in Kenya via "
@@ -70,6 +77,7 @@ PROJECTS = [
     },
     {
         "sub": "Njoro", "name_en": "Njoro water rehabilitation", "status": "Proposed",
+        "sector": "Water", "county_wide": 0,
         "raw": ("Water, Environment & Natural Resources. FY2025/26 water sector needs "
                 "KSh 979,883,620 for development against a ceiling of KSh 413,356,364; "
                 "funds rehabilitation of water systems and boreholes serving rural wards."),
@@ -90,6 +98,7 @@ PROJECTS = [
     },
     {
         "sub": "Naivasha", "name_en": "Naivasha roads upgrade", "status": "Ongoing",
+        "sector": "Infrastructure", "county_wide": 0,
         "raw": ("Roads & Transport. FY2025/26 the county plans to upgrade over 800 km "
                 "of roads county-wide using graders, rollers, dozers, excavators and "
                 "tippers for grading, gravelling and drainage; Naivasha ward roads included."),
@@ -110,6 +119,7 @@ PROJECTS = [
     },
     {
         "sub": "Nakuru Town East", "name_en": "Health facilities upgrade", "status": "Proposed",
+        "sector": "Health", "county_wide": 0,
         "raw": ("Health Services. FY2025/26 priority: upgrade health infrastructure and "
                 "increase access to quality services, including equipping dispensaries "
                 "and health centres across Nakuru sub-counties."),
@@ -130,6 +140,7 @@ PROJECTS = [
     },
     {
         "sub": "Gilgil", "name_en": "The Finance Bill 2026", "status": "Bill",
+        "sector": "Finance", "county_wide": 1,
         "raw": ("The Finance Bill, 2026 (National Assembly). Proposes changes to taxes, "
                 "levies and duties that affect prices, businesses and household incomes. "
                 "Open for public participation."),
@@ -150,6 +161,7 @@ PROJECTS = [
     },
     {
         "sub": "Rongai", "name_en": "Rongai ward infrastructure", "status": "Proposed",
+        "sector": "Infrastructure", "county_wide": 0,
         "raw": ("Ward development. FY2025/26 ward proposals prioritise infrastructure "
                 "then water; Rongai ward allocation funds local roads, drainage and "
                 "small water points under the Roads Maintenance Levy."),
@@ -170,6 +182,7 @@ PROJECTS = [
     },
     {
         "sub": "Bahati", "name_en": "Constitution (Amendment) Bill 2026", "status": "Bill",
+        "sector": "Constitutional Affairs", "county_wide": 1,
         "raw": ("The Constitution of Kenya (Amendment) Bill, 2026 (Senate Bill No. 7 of "
                 "2026). Proposes constitutional and electoral changes, including a rule "
                 "barring former county governors from elective office within five years "
@@ -191,6 +204,7 @@ PROJECTS = [
     },
     {
         "sub": "Nakuru Town West", "name_en": "County Wards (Equitable Development) Bill 2024", "status": "Bill",
+        "sector": "Development", "county_wide": 1,
         "raw": ("The County Wards (Equitable Development) Bill, 2024 (Senate Bill No. 20 "
                 "of 2024). Requires county development funds to be shared fairly across "
                 "all wards so no area is left behind."),
@@ -211,6 +225,7 @@ PROJECTS = [
     },
     {
         "sub": "Kuresoi North", "name_en": "Digital Agricultural Information Bill 2026", "status": "Bill",
+        "sector": "Agriculture & Livestock", "county_wide": 1,
         "raw": ("The Digital Agricultural Information Bill, 2026. Establishes a farmer "
                 "registry and the Kenya Agriculture Digital Information Centre (KADIC) "
                 "to strengthen farming data systems."),
@@ -231,6 +246,7 @@ PROJECTS = [
     },
     {
         "sub": "Kuresoi South", "name_en": "Livestock Protection & Sustainability Bill 2024", "status": "Bill",
+        "sector": "Agriculture & Livestock", "county_wide": 1,
         "raw": ("The Livestock Protection and Sustainability Bill, 2024 (Senate Bill No. "
                 "32 of 2024). Protects livestock and curbs theft and disease to help "
                 "herders and dairy farmers."),
@@ -251,6 +267,7 @@ PROJECTS = [
     },
     {
         "sub": "Subukia", "name_en": "Agriculture Produce (Minimum Returns) Bill 2025", "status": "Bill",
+        "sector": "Agriculture & Livestock", "county_wide": 1,
         "raw": ("The Agriculture Produce (Minimum Guaranteed Returns) Bill, 2025 (Senate "
                 "Bill No. 17 of 2025). Would set a guaranteed minimum price for produce "
                 "so farmers are not forced to sell at a loss."),
@@ -293,6 +310,7 @@ def seed_all() -> None:
         pid = store.get_or_create_project(
             ward=p["sub"], name_en=p["name_en"], raw_text=p["raw"],
             pdf_path=p.get("pdf"), status=p["status"],
+            sector=p.get("sector"), county_wide=p.get("county_wide", 0),
         )
         store.set_source_url(pid, _source_url(p))
         # Only seed the hand-written fallback where no translation exists yet —
