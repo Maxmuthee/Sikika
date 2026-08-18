@@ -33,11 +33,12 @@ SUBCOUNTIES = [
 ]
 WARDS = SUBCOUNTIES  # backward-compatible export (main.py iterates these)
 
-# A bill is open for votes/feedback ONLY while it is in the public-participation
-# phase ("Proposed"). Once it moves to "Bill"/"Ongoing" the window is closed and
-# votes/feedback are rejected with an explicit message.
+# Participation window. Currently ALL bills are open for votes/feedback
+# (demo mode). To re-enable the status-based rule (only "Proposed" bills open),
+# change the return to:
+#     return (status or "").strip().lower() == "proposed"
 def participation_open(status: str) -> bool:
-    return (status or "").strip().lower() == "proposed"
+    return True
 
 PAGE_SIZE = 4  # options per USSD screen (keeps each screen < 182 chars)
 
