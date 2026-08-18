@@ -118,7 +118,9 @@ not a code change.
 │   └── prompts.py                prompts + language config (sw / ki / en)
 ├── data/
 │   ├── seed.py                   real Nakuru budget items & 2026 bills
-│   └── explosives_bill_2026.pdf  a real tabled bill, simplified on demand
+│   ├── explosives_bill_2026.pdf  a real tabled bill, simplified on demand
+│   └── nakuru_agricultural_produce_processing_bill_2026.pdf
+│                                 Nakuru County Agricultural Produce Cess Bill 2026 (draft)
 ├── scripts/
 │   ├── init_db.py                create + seed the database
 │   ├── ingest.py                 pre-generate AI mother-tongue content

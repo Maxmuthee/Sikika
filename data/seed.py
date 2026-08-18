@@ -10,7 +10,8 @@ actionable in every sub-county's menu (county items stay sub-county specific).
 Sources: Nakuru County FY2025/26 estimates (roads 800km, water ceiling
 KSh 413M, total KSh 20.7B); Parliament 2026 bill tracker (Finance Bill 2026,
 Constitution of Kenya (Amendment) Bill 2026); Ministry of Mining Explosives
-Bill 2026.
+Bill 2026; Nakuru County Assembly Agricultural Produce Cess Bill 2026 draft
+(nakuru.go.ke).
 
 Fallback translations are HAND-WRITTEN plain-language stand-ins so USSD works
 with no API key. Amounts are written in Kiswahili words (e.g. "shilingi milioni
@@ -26,6 +27,14 @@ from app import store
 
 _HERE = os.path.dirname(__file__)
 EXPLOSIVES_PDF = os.path.join(_HERE, "explosives_bill_2026.pdf")
+NAKURU_AGRICULTURAL_CESS_PDF = os.path.join(
+    _HERE, "nakuru_agricultural_produce_processing_bill_2026.pdf"
+)
+# Official source document for the Agricultural Produce Cess Bill 2026 draft.
+NAKURU_AGRICULTURAL_CESS_URL = (
+    "https://www.nakuru.go.ke/wp-content/uploads/2025/02/"
+    "THE-NAKURU-COUNTY-AGRICULTURAL-PRODUCE-CESS-BILL-2026-DRAFT-Edt.pdf"
+)
 
 # Each project: sub-county, English name, raw English source, optional PDF,
 # status, and hand-written sw/en fallback screens.
@@ -286,6 +295,36 @@ PROJECTS = [
             },
         },
     },
+    {
+        "sub": "Nakuru Town East", "name_en": "Nakuru County Agricultural Produce Cess Bill 2026",
+        "status": "Bill", "sector": "Agriculture & Livestock", "county_wide": 1,
+        "pdf": NAKURU_AGRICULTURAL_CESS_PDF,
+        "source_url": NAKURU_AGRICULTURAL_CESS_URL,
+        "raw": ("The Nakuru County Agricultural Produce Cess Bill, 2026. A Bill of the "
+                "County Assembly of Nakuru County to provide for the imposition of CESS on "
+                "agricultural produce within the County and for connected purposes. Adds a "
+                "cess (levy) on scheduled produce - maize, potatoes, milk, coffee, tea, "
+                "horticulture, cereals, pulses and roots/tubers - payable at designated "
+                "collection points and remitted to the County Revenue Fund for agricultural "
+                "infrastructure and services. Large and medium traders pay 1% of gross "
+                "turnover; small traders pay a per-bag fee (KSh 20-50). Establishes the "
+                "Agricultural Produce Cess Committee and sets offences and penalties for "
+                "non-payment. Draft dated May 2026, open for public participation."),
+        "t": {
+            "sw": {
+                "project_name": "Mswada wa Cess ya Mazao Nakuru 2026",
+                "sms_alert": "Sikika: Mswada mpya wa Nakuru unaongeza cess kwa mazao (mahindi, viazi, maziwa na mengine) kufadhili kilimo. Piga *384*7030# kutoa maoni.",
+                "civic_education": "Mswada huu wa Kaunti ya Nakuru unaweka cess (tozo) kwenye mazao yaliyoorodheshwa. Pesa zinakusanywa zinaenda barabara za shambani, masoko na huduma za kilimo.",
+                "data_summary": "Mswada wa Cess ya Mazao 2026 (Bunge la Kaunti Nakuru). Unaweka: cess kwa mahindi, viazi, maziwa, kahawa, chai na mengine. Hali: Mswada (maoni ya umma).",
+            },
+            "en": {
+                "project_name": "Nakuru County Agricultural Produce Cess Bill 2026",
+                "sms_alert": "Sikika: Nakuru's new bill adds a cess on farm produce (maize, potatoes, milk & more) to fund agriculture. Dial *384*7030# to comment.",
+                "civic_education": "This Nakuru County bill adds a cess (levy) on listed farm produce. Money raised goes to county farm roads, markets and extension services.",
+                "data_summary": "Agricultural Produce Cess Bill 2026 (Nakuru County Assembly). Adds: cess on maize, potatoes, milk, coffee, tea & more. Status: Bill (public input).",
+            },
+        },
+    },
 ]
 
 
@@ -296,6 +335,8 @@ EXPLOSIVES_BILL_URL = "https://mining.go.ke/sites/default/files/2026-06/THE%20EX
 
 
 def _source_url(p: dict) -> str:
+    if p.get("source_url"):  # a project-specific official document wins
+        return p["source_url"]
     if p.get("pdf"):
         return EXPLOSIVES_BILL_URL
     if p["status"] == "Bill":

@@ -218,7 +218,10 @@ In a session: 0 = back, 00 = main, 99 = more.</div>
     $('smsInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') smsSend(); });
     $('demoAlert').addEventListener('click', async () => {
       setStatus('Publishing a new bill …');
-      await fetch('/api/demo/notify?phone=' + encodeURIComponent(phone()) + '&project_id=1', { method: 'POST' });
+      // Alert about the newest tracked bill (today: the Agricultural Produce Cess Bill).
+      const projects = await (await fetch('/api/projects')).json();
+      const latest = projects.projects.reduce((a, b) => (b.id > a.id ? b : a), projects.projects[0]);
+      await fetch('/api/demo/notify?phone=' + encodeURIComponent(phone()) + '&project_id=' + latest.id, { method: 'POST' });
       setStatus('');
       await loadThread();
     });

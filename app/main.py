@@ -398,8 +398,15 @@ def api_sms(phone: str) -> dict:
 
 
 @app.post("/api/demo/notify")
-def demo_notify(phone: str, project_id: int = 1) -> dict:
-    """Demo helper: push a project's SMS alert straight to one phone's thread."""
+def demo_notify(phone: str, project_id: int | None = None) -> dict:
+    """Demo helper: push a project's SMS alert straight to one phone's thread.
+
+    Defaults to the newest tracked bill (today: the Agricultural Produce Cess
+    Bill 2026) so the simulator's "new bill alert" button demos the latest bill.
+    """
+    if project_id is None:
+        latest = store.all_projects()
+        project_id = latest[-1]["id"] if latest else 1
     project = store.get_project(project_id)
     if project is None:
         return {"error": "unknown project"}

@@ -189,6 +189,7 @@ def init_db() -> None:
             "Digital Agricultural Information Bill 2026": "Agriculture & Livestock",
             "Livestock Protection & Sustainability Bill 2024": "Agriculture & Livestock",
             "Agriculture Produce (Minimum Returns) Bill 2025": "Agriculture & Livestock",
+            "Nakuru County Agricultural Produce Cess Bill 2026": "Agriculture & Livestock",
         }
         _COUNTY_WIDE_BY_NAME = {
             "The Explosives Bill 2026", "The Finance Bill 2026",
@@ -197,6 +198,7 @@ def init_db() -> None:
             "Digital Agricultural Information Bill 2026",
             "Livestock Protection & Sustainability Bill 2024",
             "Agriculture Produce (Minimum Returns) Bill 2025",
+            "Nakuru County Agricultural Produce Cess Bill 2026",
         }
         for name, sector in _SECTOR_BY_NAME.items():
             c.execute("UPDATE projects SET sector = ? WHERE name_en = ? AND sector IS NULL",
